@@ -1,0 +1,20 @@
+{
+    "name" : "node_offline_debug",
+    "version" : "0.0.1",
+    "description" : "enable offline debugging of node.js functions",
+    "main" : "offline_debug.js",
+    "dependencies" : {
+        //"burrito" : "0.X.X",
+        "falafel" : "0.X.X"
+    },
+    "keywords" : [
+        "instrumentation",
+        "debug",
+        "offline"
+    ],
+    "author" : {
+        "name" : "Inbar Shani",
+        "email" : "inbar.shani@hp.com"
+    },
+    "engine" : { "node" : ">=0.4" }
+}

@@ -1,0 +1,1 @@
+node_offline_debug would enable debugging with not interruption for node.js applications.

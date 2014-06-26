@@ -115,7 +115,7 @@ var contribute_to_context = function(context, executionContext) {
 
   context.__start = function(fn, args, filename, lineno) {
     var start = Date.now();
-    var message = helpers.prepareMessage(fn.name, args, filename, lineno,'incoming');
+    var message = instruments.prepareMessage(fn.name, args, filename, lineno,'incoming');
 
     // turn arguments into a true array
     args = Array.prototype.slice.call(args);
@@ -134,7 +134,7 @@ var contribute_to_context = function(context, executionContext) {
         // turn arguments into a true array
         args = Array.prototype.slice.call(args);
 
-        message = helpers.prepareMessage(fn.name, args, filename, lineno,'outgoing');
+        message = instruments.prepareMessage(fn.name, args, filename, lineno,'outgoing');
 
         if (message.length > 0) {
           console.error(message);
@@ -216,35 +216,6 @@ var helpers = {
       if (lhs.total() < rhs.total()) return 1;
       if (lhs.total() > rhs.total()) return -1;
       return 0;
-  },
-
-  // Format output
-  prepareMessage: function (signature, args, filename, lineno, direction) {
-
-    function formatMessage (filename, funcText, argsText, lineno, direction) {
-        if (direction === 'incoming') {
-          return filenameShorten + ' => ' + funcText + argsText + ' line#: ' + lineno;
-        } else {
-           return filenameShorten + ' <= ' + funcText + argsText + ' line#: ' + lineno;
-        }
-    }
-
-    var funcText = ((signature === '') ? 'An anonymous function ' : signature);
-    var argsText = ((args.length === 0) ? ', no arguments' : ' (' +  args + ')');
-    var filenameShorten = filename.cutFromLastIndexOf('/');
-    var formattedMessage = '';
-
-    if (signature !== '') {
-      if (instruments.shouldWrapFunction(filename, signature)) {
-        formattedMessage = formatMessage(filenameShorten, funcText, argsText, lineno, direction);
-      }
-    } else {
-      if (instruments.logAnonumousFunctions) {
-        formattedMessage = formatMessage(filenameShorten, funcText, argsText, lineno, direction);
-      }
-    }
-
-    return formattedMessage;
   }
 };
 

@@ -1,0 +1,27 @@
+{
+    "functionList": [{
+        "functionName": "search(word)",
+        "sourceFile": "words.js",
+        "selected": true
+    }, {
+        "functionName": "f1(var i)",
+        "sourceFile": "class1.java",
+        "selected": true
+    }, {
+        "functionName": "f2()",
+        "sourceFile": "class2.java",
+        "selected": false
+    }, {
+        "functionName": "foo(int f)",
+        "sourceFile": "class2.java",
+        "selected": true
+    }, {
+        "functionName": "foo2(int)",
+        "sourceFile": "class1.java",
+        "selected": false
+    }, {
+        "functionName": "foo2(int)",
+        "sourceFile": "class2.java",
+        "selected": true
+    }]
+}

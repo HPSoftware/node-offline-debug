@@ -1,0 +1,10 @@
+{
+    "active": true,
+    "exclude": ["express", "mime"],
+    "useMock": true,
+    "logAnonumousFunctions": false,
+    "mock_file": "../config/mock.json",
+    "authentication_type": "basic",
+    "username": "seffy",
+    "password": "seffy"
+}

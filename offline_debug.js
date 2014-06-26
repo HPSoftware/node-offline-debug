@@ -3,21 +3,9 @@ var Module    = require('module').Module,
   read        = require('fs').readFileSync,
   EE          = require('events').EventEmitter,
   falafel     = require('falafel'),
-  strings     = require('./more_utils');
+  strings     = require('./lib/strings');
+  instruments = require('./lib/instruments');
   //, burrito = require('burrito')
-
-// Debug/Trial code - hard coded pieces of code
-var instrumentConfig = {
-  active: true,
-  exclude: ['express', 'mime'],
-  lookup: [
-    { 'filename': 'words',
-      'functions': ['search']
-    }
-  ]
-};
-
-// End of Debug/Trial code - hard coded pieces of code
 
 var ExecutionContext = function() {
   this.functions  = [];
@@ -94,67 +82,48 @@ function transformNodeSource(src, node) {
   return src;
 }
 
-// Added a general method to query latest configuration
-var instrument_utils = {
-  shouldWrapFunction: function (filename, method) {
-    var module = instrumentConfig.lookup.filter(function (item) {
-        return (module.filename === filename);
-    });
-
-    if (module) {
-      if (method) {
-        return (module.functions.indexOf(method));
-      } else {
-        return true;
-      }
-    }
-    return false;
-  },
-
-  isModuleExclded: function (moduleName) {
-    return (instrumentConfig.exclude.indexOf(moduleName) >= 0);
-  }
-};
-
 var wrap_code = function(src, filename) {
-  if (instrumentConfig.active) {
-    return falafel(src, { 'loc': true } ,function(node) {
-      switch(node.type){ // falafel
-        case 'FunctionDeclaration':
-        case 'FunctionExpression':
-      /*switch(node.name) { // burrito
-        //case 'function':
-        //case 'defun':
-        case 'never':*/
-          var src = node.source();
-          //console.error('instrument function: ' + node.id);
-          //node.wrap(transformNodeSource); // burrito
-          node.update(transformNodeSource(src, node, filename)); // falafel
-        break;
-        default:
-        /*
-          var src = node.source();
-          console.log('instrument type: '+node.type+' with src: '+src);
-        */
-        break;
-      }
-    });
-  } else {
-    return src;
+  if (instruments.config.active) {
+    if (instruments.isModuleIncluded(filename)) {
+      return falafel(src, { 'loc': true } ,function(node) {
+        switch(node.type) { // falafel
+          case 'FunctionDeclaration':
+          case 'FunctionExpression':
+        /*switch(node.name) { // burrito
+          //case 'function':
+          //case 'defun':
+          case 'never':*/
+            var src = node.source();
+            //console.error('instrument function: ' + node.id);
+            //node.wrap(transformNodeSource); // burrito
+            node.update(transformNodeSource(src, node, filename)); // falafel
+          break;
+          default:
+          /*
+            var src = node.source();
+            console.log('instrument type: '+node.type+' with src: '+src);
+          */
+          break;
+        }
+      });
+    }
   }
+  return src;
 };
 
 var contribute_to_context = function(context, executionContext) {
 
-  context.__start = function(fn, args, filename, lineo) {
+  context.__start = function(fn, args, filename, lineno) {
     var start = Date.now();
+    var message = helpers.prepareMessage(fn.name, args, filename, lineno,'incoming');
+
     // turn arguments into a true array
     args = Array.prototype.slice.call(args);
-    var funcName = ((fn.name === '') ? 'An anonymous function ' : fn.name);
-    var argsText = ((args.length === 0) ? ', no arguments' : ' (' +  args + ')');
-    var filenameShorten = filename.cutFromLastIndexOf('/');
 
-    console.error(filenameShorten + ' => ' + funcName + argsText + ' line#: ' + lineo);
+    if (message.length > 0) {
+      console.error(message);
+    }
+
     executionContext.stackDepth++;
 
     executionContext.functions[fn.__guid] &&
@@ -165,11 +134,12 @@ var contribute_to_context = function(context, executionContext) {
         // turn arguments into a true array
         args = Array.prototype.slice.call(args);
 
-        var funcName = ((fn.name === '') ? 'An anonymous function ' : fn.name);
-        var argsText = ((args.length === 0) ? ', no arguments' : ' (' +  args + ')');
-        var filenameShorten = filename.cutFromLastIndexOf('/');
+        message = helpers.prepareMessage(fn.name, args, filename, lineno,'outgoing');
 
-        console.error(filenameShorten + ' <= ' + funcName + argsText + ' line#: ' + lineo);
+        if (message.length > 0) {
+          console.error(message);
+        }
+
         executionContext.store(fn, start, Date.now());
         executionContext.stackDepth--;
       }
@@ -246,6 +216,35 @@ var helpers = {
       if (lhs.total() < rhs.total()) return 1;
       if (lhs.total() > rhs.total()) return -1;
       return 0;
+  },
+
+  // Format output
+  prepareMessage: function (signature, args, filename, lineno, direction) {
+
+    function formatMessage (filename, funcText, argsText, lineno, direction) {
+        if (direction === 'incoming') {
+          return filenameShorten + ' => ' + funcText + argsText + ' line#: ' + lineno;
+        } else {
+           return filenameShorten + ' <= ' + funcText + argsText + ' line#: ' + lineno;
+        }
+    }
+
+    var funcText = ((signature === '') ? 'An anonymous function ' : signature);
+    var argsText = ((args.length === 0) ? ', no arguments' : ' (' +  args + ')');
+    var filenameShorten = filename.cutFromLastIndexOf('/');
+    var formattedMessage = '';
+
+    if (signature !== '') {
+      if (instruments.shouldWrapFunction(filename, signature)) {
+        formattedMessage = formatMessage(filenameShorten, funcText, argsText, lineno, direction);
+      }
+    } else {
+      if (instruments.logAnonumousFunctions) {
+        formattedMessage = formatMessage(filenameShorten, funcText, argsText, lineno, direction);
+      }
+    }
+
+    return formattedMessage;
   }
 };
 
@@ -264,17 +263,13 @@ module.exports = function(match) {
       return original_require(module, filename);
     }
 
-      var moduleName = filename.cutFromLastIndexOf('/').cutUpToLastIndexOf('.');
-
       var module_context = {},
         src = read(filename, 'utf8'),
         wrapper = function(s) {
           return 'return (function(ctxt) { return (function(__start, __decl) { return '+s+'; })(ctxt.__start, ctxt.__decl); })';
         };
 
-        //if (instrument_utils.isModuleExclded(moduleName)) {
-          src = wrap_code(src, filename);
-       // }
+        src = wrap_code(src, filename);
 
         node_environment(module_context, module, filename);
 

@@ -1,3 +1,5 @@
+node_offline_debug would enable debugging with not interruption for node.js applications.
+
 
 Changes/Development log:
 
@@ -8,7 +10,7 @@ Dror:
 1. Started breaking main module into pieces
 2. Added line number to every log line
 3. Re-formatted line to include the following:
-    * calling a function [filename] => [method_name]([arguments]) line#: [line_number]    
+    * calling a function [filename] => [method_name]([arguments]) line#: [line_number]
     * function return [filename] <= [method_name]([arguments]) line#: [line_number]
 
    In case of an anonymous function, add a notification: An anonymous function

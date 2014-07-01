@@ -146,67 +146,51 @@ module.exports = function(match) {
     execution_context   = new ExecutionContext(),
     context             = contribute_to_context({}, execution_context);
 
-  var waiting = true;
+    match = typeof match === 'string' ?
+      new RegExp(match.replace(/\//g, '\\/').replace(/\./g, '\\.')) :
+          match === undefined ?
+              /.*/g : match;
 
-  var waitForConfigReload = setInterval(function () {
-    if (config.status === "done") {
-      waiting = false;
-      load();
-      console.log('Done!');
-      clearInterval(waitForConfigReload);
-    }
-  }, 1000);
+    require.extensions['.js'] = function(module, filename) {
+      if (!match.test(filename)) {
+        return original_require(module, filename);
+      }
 
-  function load () {
-    if (!waiting) {
-      match = typeof match === 'string' ?
-        new RegExp(match.replace(/\//g, '\\/').replace(/\./g, '\\.')) :
-            match === undefined ?
-                /.*/g : match;
+      var module_context = {},
+        src = read(filename, 'utf8'),
+        wrapper = function(s) {
+          return 'return (function(ctxt) { return (function(__start, __decl) { return '+s+'; })(ctxt.__start, ctxt.__decl); })';
+        };
 
-      require.extensions['.js'] = function(module, filename) {
-        if (!match.test(filename)) {
-          return original_require(module, filename);
-        }
+        src = wrap_code(src, filename);
 
-        var module_context = {},
-          src = read(filename, 'utf8'),
-          wrapper = function(s) {
-            return 'return (function(ctxt) { return (function(__start, __decl) { return '+s+'; })(ctxt.__start, ctxt.__decl); })';
-          };
+        node_environment(module_context, module, filename);
 
-          src = wrap_code(src, filename);
+        var apply_execution_context = module._compile(wrapper(Module.wrap(src)), filename),
+          execute_module = apply_execution_context(context),
+          args;
 
-          node_environment(module_context, module, filename);
+        args = [
+            module_context.exports,
+            module_context.require,
+            module,
+            filename,
+            module_context.__dirname
+          ];
 
-          var apply_execution_context = module._compile(wrapper(Module.wrap(src)), filename),
-            execute_module = apply_execution_context(context),
-            args;
+        return execute_module.apply(module.exports, args);
+    };
 
-          args = [
-              module_context.exports,
-              module_context.require,
-              module,
-              filename,
-              module_context.__dirname
-            ];
+    var complete = function (fn) {
+      fn(execution_context.functions.slice(), helpers);
+    };
 
-          return execute_module.apply(module.exports, args);
-      };
+    complete.release = function () {
+      require.extensions['.js'] = original_require;
+    };
 
-      var complete = function (fn) {
-        fn(execution_context.functions.slice(), helpers);
-      };
-
-      complete.release = function () {
-        require.extensions['.js'] = original_require;
-      };
-
-      complete.on = function (what, fn) {
-        execution_context.on(what, fn);
-      };
-      return complete;
-    }
-  }
-
+    complete.on = function (what, fn) {
+      execution_context.on(what, fn);
+    };
+    return complete;
 };

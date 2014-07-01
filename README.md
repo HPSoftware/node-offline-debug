@@ -15,7 +15,7 @@ Dror:
 
    In case of an anonymous function, add a notification: An anonymous function
 
-27/06/2014
+29/06/2014
 
 Dror:
 
@@ -24,3 +24,11 @@ Dror:
 3. Added a new "instruments" module to handle instrument activities besides core functionality. Message formatting, module/function exclude/include are all handled there.
 4. Implemented functionality to log only selected functions and ignore others
 5. Implemented partial module exclusion
+
+30/06/2014
+
+Dror:
+
+1. Added handling to results data preparing it for sending back to server
+2. Added some helpers such as Map to handle matching of incoming and outgoing messages - pending tests
+3. Added initial call to the server to pull configuration

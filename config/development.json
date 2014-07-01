@@ -1,8 +1,10 @@
 {
     "active": true,
     "exclude": ["express", "mime"],
-    "useMock": true,
-    "logAnonumousFunctions": false,
+    "useMock": false,
+    "logAnonumousFunctions": true,
+    "intervalPeriod": 1000,
+    "url": "ec2-54-189-147-119.us-west-2.compute.amazonaws.com",
     "mock_file": "../config/mock.json",
     "authentication_type": "basic",
     "username": "seffy",

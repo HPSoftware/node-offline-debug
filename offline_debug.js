@@ -4,6 +4,7 @@ var instruments = require('./lib/instruments'),
   read        = require('fs').readFileSync,
   EE          = require('events').EventEmitter,
   falafel     = require('falafel'),
+  util        = require('util'),
   strings     = require('./lib/strings'),
   map         = require('./lib/map');
   //, burrito = require('burrito')
@@ -15,8 +16,8 @@ var ExecutionContext = function() {
   EE.call(this);
 };
 
-var inProcess = new map();
-var stream = [];
+var inProcess = new map(),
+  functionHasEnded = false;
 
 ExecutionContext.prototype = new EE();
 
@@ -25,6 +26,25 @@ ExecutionContext.prototype.store = function(fn, start, end) {
   this.functions[fn.__guid] &&
     this.functions[fn.__guid].invoke(start, end);
 };
+
+function CustomError (msg) {
+  Error.call(this);
+
+  // By default, V8 limits the stack trace size to 10 frames.
+  Error.stackTraceLimit = 10;
+
+  // Customizing stack traces
+  Error.prepareStackTrace = function (err, stack) {
+    return stack;
+  };
+
+  Error.captureStackTrace(this, arguments.callee);
+
+  this.message = msg;
+  this.name = 'CustomError';
+}
+
+CustomError.prototype.__proto__ = Error.prototype;
 
 var cache = function(fn) {
   var ret = function() {
@@ -42,12 +62,13 @@ function transformNodeSource(src, node) {
   // covers both functions ending with }) and just }
   src = src.replace(/\}\)$/, ';} finally { __callop__.end() } })');
   src = src.replace(/\}$/, ';} finally { __callop__.end() } }');
+
   //return '__decl('+str+', __filename, '+node.node[0].start.line+')';
   return src;
 }
 
 var wrap_code = function(src, filename) {
-  if (instruments.config.active) {
+  if (instruments.isActive()) {
     if (instruments.isModuleIncluded(filename)) {
       return falafel(src, { 'loc': true } ,function(node) {
         switch(node.type) { // falafel
@@ -66,13 +87,15 @@ var wrap_code = function(src, filename) {
 var contribute_to_context = function(context, executionContext) {
 
   context.__start = function(fn, args, filename, lineno) {
-    var start = new Date().getTime() / 1000;
+    var start = new Date();
+    var methodId = start.getTime();
+
+    // turn arguments into a true array
+    args = Array.prototype.slice.call(args);
 
     var log = instruments.prepareLogTexts(fn.name, args, filename, lineno, start);
 
     var message = instruments.prepareLogMessage(log, 'incoming');
-    // turn arguments into a true array
-    args = Array.prototype.slice.call(args);
 
     if (message.length > 0) {
       console.error(message);
@@ -81,25 +104,71 @@ var contribute_to_context = function(context, executionContext) {
 
       method.debugData.push(instruments.prepareLogFunction(log));
 
-      inProcess.put(start, method);
+      inProcess.put(methodId, method);
     }
 
     return {
-      'end':function() {
-
+      end: function() {
         var log = instruments.prepareLogTexts(fn.name, Array.prototype.slice.call(args), filename, lineno, start);
 
         var message = instruments.prepareLogMessage(log, 'outgoing');
 
         if (message.length > 0) {
+
+          var error = new Error();
+          var stack = JSON.stringify(error, ['stack'], 2) || null,
+            stackLines = [];
+
+          if (stack) {
+            stack = stack.replace('{', '').replace('}', '');
+
+            stackLines = stack.split(" at ");
+            stackLines.shift();
+            stackLines.shift();
+
+            console.error(stackLines.join(" at "));
+          }
+
+        // var stack1 = stackTrace.get();
+        // var err = new Error('something went wrong');
+        // var trace = stackTrace.parse(err);
+
+        // console.error(trace);
+
+        // var config = {
+        //   configurable: true,
+        //   value: function() {
+        //     var alt = {};
+        //     var storeKey = function(key) {
+        //       alt[key] = this[key];
+        //     };
+        //     Object.getOwnPropertyNames(this).forEach(storeKey, this);
+        //     return alt;
+        //   }
+        // };
+
+        // Object.defineProperty(Error.prototype, 'toJSON', config);
+        // var error = new Error('something broke');
+        // error.inner = new Error('some inner thing broke');
+        // error.code = '500c';
+        // error.severity = 'high';
+        // var simpleError = JSON.parse(JSON.stringify(error));
+        // var msg1 = prettyjson.render(simpleError);
+
+        // console.error(msg1);
+
+        // var ce = new CustomError('`foo` has been removed in favorof `bar`');
+          // }
+
           console.error(message);
-          var method = inProcess.get(start) || null;
+          var method = inProcess.get(methodId) || null;
 
           if (method !== null) {
-            method.debugData[0].end = new Date().getTime() / 1000;
-            method.debugData[0].returnValue = log.argsText;
-            stream.push(method);
-            inProcess.remove(start);
+            method.debugData[0].endTimestamps = instruments.getDateTime(new Date());
+            //method.debugData[0].returnValue = JSON.stringify(log.argsText);
+            method.debugData[0].message = stackLines.join(' at ');
+            instruments.postBackLog(method);
+            inProcess.remove(methodId);
           }
         }
       }
@@ -158,6 +227,7 @@ module.exports = function(match) {
 
       var module_context = {},
         src = read(filename, 'utf8'),
+        orig = src,
         wrapper = function(s) {
           return 'return (function(ctxt) { return (function(__start, __decl) { return '+s+'; })(ctxt.__start, ctxt.__decl); })';
         };
@@ -175,7 +245,8 @@ module.exports = function(match) {
             module_context.require,
             module,
             filename,
-            module_context.__dirname
+            module_context.__dirname,
+            orig
           ];
 
         return execute_module.apply(module.exports, args);

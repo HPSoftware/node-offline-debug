@@ -4,7 +4,6 @@
     "description" : "enable offline debugging of node.js functions",
     "main" : "offline_debug.js",
     "dependencies" : {
-        //"burrito" : "0.X.X",
         "falafel" : "0.X.X"
     },
     "keywords" : [

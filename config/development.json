@@ -1,11 +1,14 @@
 {
     "active": true,
     "exclude": ["express", "mime"],
-    "useMock": true,
-    "logAnonumousFunctions": true,
-    "intervalPeriod": 1000,
+    "useMock": false,
+    "logAnonumousFunctions": false,
     "url": "ec2-54-189-147-119.us-west-2.compute.amazonaws.com",
     "mock_file": "../config/mock.json",
     "username": "seffy",
-    "password": "seffy"
+    "password": "seffy",
+    "autoCheckConfiguration" : {
+        "once": false,
+        "every": 10000
+    }
 }

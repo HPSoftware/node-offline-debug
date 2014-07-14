@@ -4,7 +4,9 @@
     "description" : "enable offline debugging of node.js functions",
     "main" : "offline_debug.js",
     "dependencies" : {
-        "falafel" : "0.X.X"
+        "falafel" : "0.X.X",
+        "callsite": "1.X.X",
+        "winston": "0.X.X"
     },
     "keywords" : [
         "instrumentation",

@@ -10,5 +10,41 @@
     "autoCheckConfiguration" : {
         "once": false,
         "every": 10000
+    },
+    "logging": {
+        "levels": {
+            "verbose": 1,
+            "info": 2,
+            "data": 3,
+            "warn": 4,
+            "debug": 5,
+            "error": 6,
+            "remote": 7
+        },
+        "colors": {
+            "verbose": "cyan",
+            "info": "green",
+            "data": "gray",
+            "warn": "yellow",
+            "debug": "blue",
+            "error": "red",
+            "remote": "white"
+        },
+        "debug": {
+            "log": true,
+            "logToConsole": true,
+            "logToFile": false,
+            "filename": "debug",
+            "roll_file": true,
+            "roll_everyday": false
+        },
+        "exceptions": {
+            "log": true,
+            "logToConsole": true,
+            "logToFile": false,
+            "filename": "exception",
+            "roll_file": true,
+            "roll_everyday": false
+        }
     }
 }

@@ -6,8 +6,13 @@ var instruments = require('./lib/instruments'),
   falafel     = require('falafel'),
   util        = require('util'),
   strings     = require('./lib/strings'),
+  callsite    = require('callsite'),
+  assert      = require('assert'),
+  //logger      = require('./lib/logger'),
   map         = require('./lib/map');
   //, burrito = require('burrito')
+
+var first = 5;
 
 var ExecutionContext = function() {
   this.functions  = [];
@@ -27,25 +32,6 @@ ExecutionContext.prototype.store = function(fn, start, end) {
     this.functions[fn.__guid].invoke(start, end);
 };
 
-function CustomError (msg) {
-  Error.call(this);
-
-  // By default, V8 limits the stack trace size to 10 frames.
-  Error.stackTraceLimit = 10;
-
-  // Customizing stack traces
-  Error.prepareStackTrace = function (err, stack) {
-    return stack;
-  };
-
-  Error.captureStackTrace(this, arguments.callee);
-
-  this.message = msg;
-  this.name = 'CustomError';
-}
-
-CustomError.prototype.__proto__ = Error.prototype;
-
 var cache = function(fn) {
   var ret = function() {
     this.__cache__ = this.__cache__ || {};
@@ -56,16 +42,51 @@ var cache = function(fn) {
   return ret;
 };
 
-function transformNodeSource(src, node) {
-  //var data = read(__filename, 'utf8').split('\n');
-  src = src.replace('{', '{ var __callop__ = __start(arguments.callee, arguments, __filename, ' + node.loc.start.line + '); try {');
-  // covers both functions ending with }) and just }
-  src = src.replace(/\}\)$/, ';} finally { __callop__.end() } })');
-  src = src.replace(/\}$/, ';} finally { __callop__.end() } }');
+// function transformNodeSource(src, node) {
+//   //var data = read(__filename, 'utf8').split('\n');
+//   src = src.replace('{', '{ var __callop__ = __start(arguments.callee, arguments, __filename, ' + node.loc.start.line + '); try {');
+//   // covers both functions ending with }) and just }
+//   src = src.replace(/\}\)$/, ';} finally { __callop__.end() } })');
+//   src = src.replace(/\}$/, ';} finally { __callop__.end() } }');
 
-  //return '__decl('+str+', __filename, '+node.node[0].start.line+')';
-  return src;
+//   //return '__decl('+str+', __filename, '+node.node[0].start.line+')';
+//   return src;
+// }
+
+function transformNodeArgs(fn_signature, args, _args) {
+  fn_signature = fn_signature.replace(/\(.*\)/,'('+_args.join(',')+')');
+  return fn_signature;
 }
+
+function transformNodeSource(src, args, _args, node) {
+  // split at first {, replace the signature and re-combine at the end
+  var fn_signature ='';
+  if (args.length > 0) {
+    var indexOfBracket = src.indexOf('{');
+    fn_signature = src.substring(0,indexOfBracket);
+    src = src.substring(indexOfBracket);
+    //console.log('src after src split: '+src+'\n');
+    //console.log('fn_signature after src split: '+fn_signature+'\n');
+
+    fn_signature = transformNodeArgs(fn_signature, args, _args);
+  }
+
+  src = src.replace('{',
+    '{ var __callop__ = __start(arguments.callee, arguments, __filename, ' + node.loc.start.line + ');'+
+    'var retVal; try {'+
+    'retVal = (function('+args.join(',')+'){');
+
+  // covers both functions ending with }) and just }
+  // TODO: If we get a global object "this" problem in strict mode consider using undefined
+  var call_arguments = 'this';
+  if (_args.length > 0)
+    call_arguments = call_arguments +', '+ _args.join(', ');
+  src = src.replace(/\}\)$/, '}).call('+call_arguments+');return retVal;} finally { __callop__.end(retVal) } })');
+  src = src.replace(/\}$/, '}).call('+call_arguments+');return retVal;} finally { __callop__.end(retVal) } }');
+  //return '__decl('+str+', __filename, '+node.node[0].start.line+')';
+  return fn_signature + src;
+}
+
 
 var wrap_code = function(src, filename) {
   if (instruments.isActive()) {
@@ -75,9 +96,31 @@ var wrap_code = function(src, filename) {
           case 'FunctionDeclaration':
           case 'FunctionExpression':
             var src = node.source();
-            node.update(transformNodeSource(src, node, filename)); // falafel
-            break;
-        }
+            var args = [], _args = [];
+
+            for (var i = 0; i < node.params.length; ++i) {
+              args.push(node.params[i].name);
+              _args.push('__'+node.params[i].name);
+            }
+
+            if (false && first && args.length == 1 && args[0] == 'k') { //node.id && (node.id.name.indexOf('capitalize') >= 0))
+              // logger.info('function source:\n' + src + '\n');
+              // logger.info('function params:\n' + args.join(',') + '\n');
+              // logger.info('\n\n');
+              // logger.info('function new source:\n' + transformNodeSource(src, args, _args) + '\n');
+              log.console('function source:\n' + src + '\n');
+              log.console('function params:\n' + args.join(',') + '\n');
+              log.console('\n\n');
+              log.console('function new source:\n' + transformNodeSource(src, args, _args) + '\n');
+              first--;
+            }
+
+            //node.wrap(transformNodeSource); // burrito
+            node.update(transformNodeSource(src, args, _args, node)); // falafel
+            // var src = node.source();
+            // node.update(transformNodeSource(src, node)); // falafel
+            // break;
+          }
       });
     }
   }
@@ -98,6 +141,7 @@ var contribute_to_context = function(context, executionContext) {
     var message = instruments.prepareLogMessage(log, 'incoming');
 
     if (message.length > 0) {
+      //logger.remote(message);
       console.error(message);
       // Prepare and push
       var method = instruments.prepareLogObject();
@@ -109,58 +153,36 @@ var contribute_to_context = function(context, executionContext) {
 
     return {
       end: function() {
-        var log = instruments.prepareLogTexts(fn.name, Array.prototype.slice.call(args), filename, lineno, start);
+        var fixArgs = Array.prototype.slice.call(args);
+        var log = instruments.prepareLogTexts(fn.name, fixArgs, filename, lineno, start);
 
         var message = instruments.prepareLogMessage(log, 'outgoing');
 
         if (message.length > 0) {
 
-          var error = new Error();
-          var stack = JSON.stringify(error, ['stack'], 2) || null,
-            stackLines = [];
+          var stackLines = [];
 
-          if (stack) {
-            stack = stack.replace('{', '').replace('}', '');
+          callsite().forEach(function(site){
+            var stackLine = [
+              site.getFunctionName() || 'anonymous' + " ",
+              site.getFileName() + " ",
+              site.getLineNumber() + " "
+            ].join();
 
-            stackLines = stack.split(" at ");
+            stackLines.push(stackLine);
+          });
+
+          if (stackLines) {
             stackLines.shift();
-            stackLines.shift();
 
-            console.error(stackLines.join(" at "));
+            //logger.verbose(stackLines.join("\n at "));
+            console.log(stackLines.join("\n at "));
           }
 
-        // var stack1 = stackTrace.get();
-        // var err = new Error('something went wrong');
-        // var trace = stackTrace.parse(err);
-
-        // console.error(trace);
-
-        // var config = {
-        //   configurable: true,
-        //   value: function() {
-        //     var alt = {};
-        //     var storeKey = function(key) {
-        //       alt[key] = this[key];
-        //     };
-        //     Object.getOwnPropertyNames(this).forEach(storeKey, this);
-        //     return alt;
-        //   }
-        // };
-
-        // Object.defineProperty(Error.prototype, 'toJSON', config);
-        // var error = new Error('something broke');
-        // error.inner = new Error('some inner thing broke');
-        // error.code = '500c';
-        // error.severity = 'high';
-        // var simpleError = JSON.parse(JSON.stringify(error));
-        // var msg1 = prettyjson.render(simpleError);
-
-        // console.error(msg1);
-
-        // var ce = new CustomError('`foo` has been removed in favorof `bar`');
-          // }
-
+          //logger.debug('function return: '+fn.name+' with return value: '+retVal+'\n');
+          //logger.remote(message);
           console.error(message);
+
           var method = inProcess.get(methodId) || null;
 
           if (method !== null) {
@@ -227,14 +249,16 @@ module.exports = function(match) {
 
       var module_context = {},
         src = read(filename, 'utf8'),
-        orig = src,
         wrapper = function(s) {
-          return 'return (function(ctxt) { return (function(__start, __decl) { return '+s+'; })(ctxt.__start, ctxt.__decl); })';
+          return 'return (function(ctxt) { return (function(__start, __decl) { return ' + s + '; })(ctxt.__start, ctxt.__decl); })';
         };
 
         src = wrap_code(src, filename);
 
         node_environment(module_context, module, filename);
+
+        console.log(filename);
+        //logger.warning(filename);
 
         var apply_execution_context = module._compile(wrapper(Module.wrap(src)), filename),
           execute_module = apply_execution_context(context),
@@ -245,8 +269,7 @@ module.exports = function(match) {
             module_context.require,
             module,
             filename,
-            module_context.__dirname,
-            orig
+            module_context.__dirname
           ];
 
         return execute_module.apply(module.exports, args);

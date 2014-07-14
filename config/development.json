@@ -33,7 +33,7 @@
         "debug": {
             "log": true,
             "logToConsole": true,
-            "logToFile": false,
+            "logToFile": true,
             "filename": "debug",
             "roll_file": true,
             "roll_everyday": false

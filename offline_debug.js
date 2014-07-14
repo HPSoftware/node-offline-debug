@@ -8,7 +8,7 @@ var instruments = require('./lib/instruments'),
   strings     = require('./lib/strings'),
   callsite    = require('callsite'),
   assert      = require('assert'),
-  //logger      = require('./lib/logger'),
+  logger      = require('./lib/logger'),
   map         = require('./lib/map');
   //, burrito = require('burrito')
 
@@ -104,14 +104,11 @@ var wrap_code = function(src, filename) {
             }
 
             if (false && first && args.length == 1 && args[0] == 'k') { //node.id && (node.id.name.indexOf('capitalize') >= 0))
-              // logger.info('function source:\n' + src + '\n');
-              // logger.info('function params:\n' + args.join(',') + '\n');
-              // logger.info('\n\n');
-              // logger.info('function new source:\n' + transformNodeSource(src, args, _args) + '\n');
-              log.console('function source:\n' + src + '\n');
-              log.console('function params:\n' + args.join(',') + '\n');
-              log.console('\n\n');
-              log.console('function new source:\n' + transformNodeSource(src, args, _args) + '\n');
+            //if (node.id && (node.id.name.indexOf('urlencoded') >= 0)) { //node.id && (node.id.name.indexOf('capitalize') >= 0))
+              logger.info('function source:\n' + src + '\n');
+              logger.info('function params:\n' + args.join(',') + '\n');
+              logger.info('\n\n');
+              logger.info('function new source:\n' + transformNodeSource(src, args, _args) + '\n');
               first--;
             }
 
@@ -141,8 +138,8 @@ var contribute_to_context = function(context, executionContext) {
     var message = instruments.prepareLogMessage(log, 'incoming');
 
     if (message.length > 0) {
-      //logger.remote(message);
-      console.error(message);
+      logger.remote(message);
+
       // Prepare and push
       var method = instruments.prepareLogObject();
 
@@ -175,13 +172,11 @@ var contribute_to_context = function(context, executionContext) {
           if (stackLines) {
             stackLines.shift();
 
-            //logger.verbose(stackLines.join("\n at "));
-            console.log(stackLines.join("\n at "));
+            logger.verbose(stackLines.join("\n at "));
           }
 
           //logger.debug('function return: '+fn.name+' with return value: '+retVal+'\n');
-          //logger.remote(message);
-          console.error(message);
+          logger.remote(message);
 
           var method = inProcess.get(methodId) || null;
 
@@ -257,8 +252,7 @@ module.exports = function(match) {
 
         node_environment(module_context, module, filename);
 
-        console.log(filename);
-        //logger.warning(filename);
+        logger.warn(filename);
 
         var apply_execution_context = module._compile(wrapper(Module.wrap(src)), filename),
           execute_module = apply_execution_context(context),

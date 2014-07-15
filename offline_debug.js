@@ -12,7 +12,7 @@ var instruments = require('./lib/instruments'),
   map         = require('./lib/map');
   //, burrito = require('burrito')
 
-var first = 5;
+var first = 25;
 
 var ExecutionContext = function() {
   this.functions  = [];
@@ -58,7 +58,7 @@ function transformNodeArgs(fn_signature, args, _args) {
   return fn_signature;
 }
 
-function transformNodeSource(src, args, _args, node) {
+function transformNodeSource(src, args, _args, start_line, fn_name) {
   // split at first {, replace the signature and re-combine at the end
   var fn_signature ='';
   if (args.length > 0) {
@@ -72,17 +72,21 @@ function transformNodeSource(src, args, _args, node) {
   }
 
   src = src.replace('{',
-    '{ var __callop__ = __start(arguments.callee, arguments, __filename, ' + node.loc.start.line + ');'+
+    '{ var __callop__ = __start(\''+fn_name+'\', arguments, __filename, ' + 
+    start_line + ');'+
     'var retVal; try {'+
-    'retVal = (function('+args.join(',')+'){');
+    'retVal = (function __offline_debug('+args.join(',')+'){');
 
   // covers both functions ending with }) and just }
   // TODO: If we get a global object "this" problem in strict mode consider using undefined
   var call_arguments = 'this';
   if (_args.length > 0)
     call_arguments = call_arguments +', '+ _args.join(', ');
-  src = src.replace(/\}\)$/, '}).call('+call_arguments+');return retVal;} finally { __callop__.end(retVal) } })');
-  src = src.replace(/\}$/, '}).call('+call_arguments+');return retVal;} finally { __callop__.end(retVal) } }');
+  src = src.replace(/\}\)$/, '}).call('+
+    call_arguments+
+    ');return retVal;} finally { __callop__.end(retVal) } })');
+  src = src.replace(/\}$/, '}).call('+call_arguments+
+    ');return retVal;} finally { __callop__.end(retVal) } }');
   //return '__decl('+str+', __filename, '+node.node[0].start.line+')';
   return fn_signature + src;
 }
@@ -97,23 +101,31 @@ var wrap_code = function(src, filename) {
           case 'FunctionExpression':
             var src = node.source();
             var args = [], _args = [];
+            var fn_name;
+            if (node.id) 
+              fn_name = node.id.name 
+            else 
+              fn_name = 'anonymous_function';
+            var fn_start_line = node.loc.start.line;
 
             for (var i = 0; i < node.params.length; ++i) {
               args.push(node.params[i].name);
               _args.push('__'+node.params[i].name);
             }
 
-            if (false && first && args.length == 1 && args[0] == 'k') { //node.id && (node.id.name.indexOf('capitalize') >= 0))
-            //if (node.id && (node.id.name.indexOf('urlencoded') >= 0)) { //node.id && (node.id.name.indexOf('capitalize') >= 0))
-              logger.info('function source:\n' + src + '\n');
-              logger.info('function params:\n' + args.join(',') + '\n');
-              logger.info('\n\n');
-              logger.info('function new source:\n' + transformNodeSource(src, args, _args) + '\n');
+            if (/*false && */first && filename.indexOf('bson') >= 0 )// >= 0 && args.length == 1 && args[0] == 'path') //node.id && (node.id.name.indexOf('capitalize') >= 0))
+            //if (node.id && (node.id.name.indexOf('urlencoded') >= 0))  //node.id && (node.id.name.indexOf('capitalize') >= 0))
+            {
+              logger.error('function filename: '+filename+' source:\n' + src + '\n');
+              logger.error('function params:\n' + args.join(',') + '\n');
+              logger.error('\n\n');
+              logger.error('function new source:\n' + 
+                transformNodeSource(src, args, _args, fn_start_line, fn_name) + '\n');
               first--;
             }
 
             //node.wrap(transformNodeSource); // burrito
-            node.update(transformNodeSource(src, args, _args, node)); // falafel
+            node.update(transformNodeSource(src, args, _args, fn_start_line, fn_name)); // falafel
             // var src = node.source();
             // node.update(transformNodeSource(src, node)); // falafel
             // break;
@@ -126,14 +138,14 @@ var wrap_code = function(src, filename) {
 
 var contribute_to_context = function(context, executionContext) {
 
-  context.__start = function(fn, args, filename, lineno) {
+  context.__start = function(fn_name, args, filename, lineno) {
     var start = new Date();
     var methodId = start.getTime();
 
     // turn arguments into a true array
     args = Array.prototype.slice.call(args);
 
-    var log = instruments.prepareLogTexts(fn.name, args, filename, lineno, start);
+    var log = instruments.prepareLogTexts(fn_name, args, filename, lineno, start);
 
     var message = instruments.prepareLogMessage(log, 'incoming');
 
@@ -151,7 +163,7 @@ var contribute_to_context = function(context, executionContext) {
     return {
       end: function() {
         var fixArgs = Array.prototype.slice.call(args);
-        var log = instruments.prepareLogTexts(fn.name, fixArgs, filename, lineno, start);
+        var log = instruments.prepareLogTexts(fn_name, fixArgs, filename, lineno, start);
 
         var message = instruments.prepareLogMessage(log, 'outgoing');
 

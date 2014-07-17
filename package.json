@@ -2,7 +2,7 @@
     "name" : "node_offline_debug",
     "version" : "0.0.1",
     "description" : "enable offline debugging of node.js functions",
-    "main" : "offline_debug.js",
+    "main" : "init.js",
     "dependencies" : {
         "falafel" : "0.X.X",
         "callsite": "1.X.X",

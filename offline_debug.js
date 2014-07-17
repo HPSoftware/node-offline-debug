@@ -9,7 +9,9 @@ var instruments = require('./lib/instruments'),
   callsite    = require('callsite'),
   assert      = require('assert'),
   logger      = require('./lib/logger'),
-  map         = require('./lib/map');
+  map         = require('./lib/map'),
+  mkdirp      = require('mkdirp'),
+  write       = require('fs').writeFileSync;
   //, burrito = require('burrito')
 
 var first = 25;
@@ -113,7 +115,7 @@ var wrap_code = function(src, filename) {
               _args.push('__'+node.params[i].name);
             }
 
-            if (/*false && */first && filename.indexOf('bson') >= 0 )// >= 0 && args.length == 1 && args[0] == 'path') //node.id && (node.id.name.indexOf('capitalize') >= 0))
+            if (false && first && filename.indexOf('server') >= 0 )// >= 0 && args.length == 1 && args[0] == 'path') //node.id && (node.id.name.indexOf('capitalize') >= 0))
             //if (node.id && (node.id.name.indexOf('urlencoded') >= 0))  //node.id && (node.id.name.indexOf('capitalize') >= 0))
             {
               logger.error('function filename: '+filename+' source:\n' + src + '\n');
@@ -261,6 +263,17 @@ module.exports = function(match) {
         };
 
         src = wrap_code(src, filename);
+
+        /* save instrumented code for instrumentation research */
+        if (instruments.shouldCreateTempCopy)
+        {
+          var tmp_file = "./tmp/"+filename.replace(':\\','');
+          var tmp_file_path = tmp_file.substring(0,tmp_file.lastIndexOf('\\'));
+
+          mkdirp.sync(tmp_file_path);
+          write(tmp_file, src);          
+        }
+        /* END save instrumneted */
 
         node_environment(module_context, module, filename);
 

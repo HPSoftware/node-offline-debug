@@ -1,6 +1,6 @@
 {
     "active": true,
-    "exclude": ["express", "mime"],
+    "exclude": ["express", "elasticsearch", "node_modules"],
     "useMock": false,
     "logAnonumousFunctions": false,
     "createTempCopyOfInstrumention": true;
@@ -11,6 +11,10 @@
     "autoCheckConfiguration" : {
         "once": false,
         "every": 10000
+    },
+    "server": {
+        "url": "127.0.0.1",
+        "port": 3001
     },
     "logging": {
         "levels": {

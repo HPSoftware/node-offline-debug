@@ -4,9 +4,9 @@
         "sourceFile": "words.js",
         "selected": true
     }, {
-        "functionName": "app.post('/todos/create', function(req, res)",
-        "sourceFile": "server.js",
-        "selected": false
+        "functionName": "f1(var i)",
+        "sourceFile": "class1.java",
+        "selected": true
     }, {
         "functionName": "f2()",
         "sourceFile": "class2.java",

@@ -1,0 +1,1 @@
+This is a trial version for testing the node.js offline debug using hooks and not AST

@@ -1,6 +1,6 @@
 {
     "active": true,
-    "exclude": ["express", "mime"],
+    "exclude": ["express", "elasticsearch", "node_modules"],
     "useMock": false,
     "logAnonumousFunctions": false,
     "url": "ec2-54-189-147-119.us-west-2.compute.amazonaws.com",
@@ -10,6 +10,10 @@
     "autoCheckConfiguration" : {
         "once": false,
         "every": 10000
+    },
+    "server": {
+        "url": "127.0.0.1",
+        "port": 3001
     },
     "logging": {
         "levels": {

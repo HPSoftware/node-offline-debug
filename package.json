@@ -1,12 +1,14 @@
 {
-    "name" : "node_offline_debug",
+    "name" : "node_offline_debug_hooker",
     "version" : "0.0.1",
-    "description" : "enable offline debugging of node.js functions",
-    "main" : "offline_debug.js",
+    "description" : "Enable offline debugging of node.js functions",
+    "main" : "offline_debug_hooker.js",
     "dependencies" : {
+        "hooker" : "0.X.X",
         "falafel" : "0.X.X",
         "callsite": "1.X.X",
-        "winston": "0.X.X"
+        "winston": "0.X.X",
+        "identifier": "0.X.X"
     },
     "keywords" : [
         "instrumentation",
@@ -14,8 +16,8 @@
         "offline"
     ],
     "author" : {
-        "name" : "Inbar Shani",
-        "email" : "inbar.shani@hp.com"
+        "name" : "Dror Avidov",
+        "email" : "dror.avidov@hp.com"
     },
     "engine" : { "node" : ">=0.4" }
 }

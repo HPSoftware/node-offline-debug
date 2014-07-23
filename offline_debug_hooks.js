@@ -8,6 +8,8 @@ var instruments     = require('./lib/instruments'),
   strings           = require('./lib/strings'),
   map               = require('./lib/map'),
   identifier        = require('identifier'),
+  mkdirp            = require('mkdirp'),
+  write             = require('fs').writeFileSync,
   logger            = require('./lib/logger');
 
 // Code taken from HP/Piano
@@ -36,12 +38,11 @@ var cache = function(fn) {
   return ret;
 };
 
-function transformNodeSource(src, key) {
-  src = src.replace('{', '{ var __callop__ = __start(arguments, __filename); try {');
-  // covers both functions ending with }) and just }
-  src = src.replace(/\}\)$/, ';} finally { __callop__.end(' + key + ') } })');
-  src = src.replace(/\}$/, ';} finally { __callop__.end(' + key + ') } }');
-
+function injectNameToFunction(src, fn_name) {
+  if (src.lastIndexOf('function(',0) === 0) // check if there is a whitespace after 'function' 
+    src = src.replace('(',' '+fn_name+'(');
+  else
+    src = src.replace('(',fn_name+'(');
   return src;
 }
 
@@ -62,7 +63,7 @@ var analyzeCode = function(src, filename) {
             // This is still work in progress and this code still doesn't work
 
             var src = node.source(),
-              fn_name = 'anonymous_function',
+              fn_name,
               key = instruments.createGuid(),
               fn_start_line = node.loc.start.line,
               shortenFilename = filename.cutFromLastIndexOf('/'),
@@ -74,6 +75,9 @@ var analyzeCode = function(src, filename) {
 
             if (node.id) {
               fn_name = node.id.name;
+            } else {
+              fn_name = identifier(6);
+              node.update(injectNameToFunction(src, fn_name)); // inject generated name
             }
 
             var module = instruments.alreadyHooked.get(shortenFilename);
@@ -84,6 +88,7 @@ var analyzeCode = function(src, filename) {
 
             // Log every function name and start line number, if this is an anonymous function
             // log it with a GUID
+            /*
             if (fn_name !== 'anonymous_function') {
               key = fn_name;
             } else {
@@ -93,11 +98,10 @@ var analyzeCode = function(src, filename) {
             if (fn_name === 'anonymous_function') {
               node.update(transformNodeSource(src, id)); // falafel
             }
-
-            module.functions.put(key, {
+            */
+            module.functions.put(fn_name, {
               "line": fn_start_line,
-              "signature": (fn_name === "anonymous_function" ? "function (" : fn_name + " (") + args.join(',') + ")",
-              "id": id
+              "signature": "function " + fn_name + " (" + args.join(',') + ")"
             });
           }
       });
@@ -239,7 +243,18 @@ module.exports = function(match) {
         logger.error('Got it');
       }
 
-      analyzeCode(src, filename);
+      src = analyzeCode(src, filename);
+
+      /* save instrumented code for instrumentation research */
+      if (instruments.shouldCreateTempCopy)
+      {
+        var tmp_file = "./tmp/"+filename.replace(':\\','');
+        var tmp_file_path = tmp_file.substring(0,tmp_file.lastIndexOf('\\'));
+
+        mkdirp.sync(tmp_file_path);
+        write(tmp_file, src);          
+      }
+      /* END save instrumneted */
 
       logger.warn(filename);
     }

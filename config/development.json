@@ -3,7 +3,7 @@
     "exclude": ["express", "elasticsearch", "node_modules"],
     "useMock": false,
     "logAnonumousFunctions": false,
-    "createTempCopyOfInstrumention": true;
+    "createTempCopyOfInstrumention": true,
     "url": "ec2-54-189-147-119.us-west-2.compute.amazonaws.com",
     "mock_file": "../config/mock.json",
     "username": "seffy",

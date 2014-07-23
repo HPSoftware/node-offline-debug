@@ -2,7 +2,7 @@
     "name" : "node_offline_debug_hooker",
     "version" : "0.0.1",
     "description" : "Enable offline debugging of node.js functions",
-    "main" : "offline_debug_hooker.js",
+    "main" : "offline_debug_hooks.js",
     "dependencies" : {
         "hooker" : "0.X.X",
         "falafel" : "0.X.X",

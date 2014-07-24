@@ -1,10 +1,10 @@
 {
     "active": true,
-    "exclude": ["express", "elasticsearch", "node_modules"],
+    "exclude": ["_express", "_elasticsearch", "_node_modules"],
     "useMock": false,
     "logAnonumousFunctions": false,
-    "createTempCopyOfInstrumention": true,
-    "url": "ec2-54-189-147-119.us-west-2.compute.amazonaws.com",
+    "createTempCopyOfInstrumention": false,
+    "url": "ec2-54-189-147-119.us-west-2.compute.amazonaws.com",    
     "mock_file": "../config/mock.json",
     "username": "seffy",
     "password": "seffy",

@@ -66,7 +66,7 @@ var analyzeCode = function(src, filename) {
               fn_name,
               key = instruments.createGuid(),
               fn_start_line = node.loc.start.line,
-              shortenFilename = filename.cutFromLastIndexOf('/'),
+              shortenFilename = instruments.shortenFileName(filename),
               args = [], id;
 
             for (var i = 0; i < node.params.length; ++i) {

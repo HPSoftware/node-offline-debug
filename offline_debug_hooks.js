@@ -8,6 +8,8 @@ var instruments     = require('./lib/instruments'),
   strings           = require('./lib/strings'),
   map               = require('./lib/map'),
   identifier        = require('identifier'),
+  mkdirp            = require('mkdirp'),
+  write             = require('fs').writeFileSync,
   logger            = require('./lib/logger');
 
 // Code taken from HP/Piano
@@ -36,12 +38,11 @@ var cache = function(fn) {
   return ret;
 };
 
-function transformNodeSource(src, key) {
-  src = src.replace('{', '{ var __callop__ = __start(arguments, __filename); try {');
-  // covers both functions ending with }) and just }
-  src = src.replace(/\}\)$/, ';} finally { __callop__.end(' + key + ') } })');
-  src = src.replace(/\}$/, ';} finally { __callop__.end(' + key + ') } }');
-
+function injectNameToFunction(src, fn_name) {
+  if (src.lastIndexOf('function(',0) === 0) // check if there is a whitespace after 'function' 
+    src = src.replace('(',' '+fn_name+'(');
+  else
+    src = src.replace('(',fn_name+'(');
   return src;
 }
 
@@ -62,10 +63,10 @@ var analyzeCode = function(src, filename) {
             // This is still work in progress and this code still doesn't work
 
             var src = node.source(),
-              fn_name = 'anonymous_function',
+              fn_name,
               key = instruments.createGuid(),
               fn_start_line = node.loc.start.line,
-              shortenFilename = filename.cutFromLastIndexOf('/'),
+              shortenFilename = instruments.shortenFileName(filename),
               args = [], id;
 
             for (var i = 0; i < node.params.length; ++i) {
@@ -74,6 +75,9 @@ var analyzeCode = function(src, filename) {
 
             if (node.id) {
               fn_name = node.id.name;
+            } else {
+              fn_name = identifier(6);
+              node.update(injectNameToFunction(src, fn_name)); // inject generated name
             }
 
             var module = instruments.alreadyHooked.get(shortenFilename);
@@ -82,22 +86,9 @@ var analyzeCode = function(src, filename) {
               instruments.alreadyHooked.put(shortenFilename, module);
             }
 
-            // Log every function name and start line number, if this is an anonymous function
-            // log it with a GUID
-            if (fn_name !== 'anonymous_function') {
-              key = fn_name;
-            } else {
-              id = identifier(6);
-            }
-
-            if (fn_name === 'anonymous_function') {
-              node.update(transformNodeSource(src, id)); // falafel
-            }
-
-            module.functions.put(key, {
+            module.functions.put(fn_name, {
               "line": fn_start_line,
-              "signature": (fn_name === "anonymous_function" ? "function (" : fn_name + " (") + args.join(',') + ")",
-              "id": id
+              "signature": "function " + fn_name + " (" + args.join(',') + ")"
             });
           }
       });
@@ -106,71 +97,6 @@ var analyzeCode = function(src, filename) {
   return src;
 };
 
-var contribute_to_context = function(context, executionContext) {
-
-  context.__start = function(fn_name, args, filename, lineno) {
-    var start = new Date();
-    var methodId = start.getTime();
-
-    // turn arguments into a true array
-    args = Array.prototype.slice.call(args);
-
-    var log = instruments.prepareLogTexts(fn_name, args, filename, lineno, start);
-
-    var message = instruments.prepareLogMessage(log, 'incoming');
-
-    if (message.length > 0) {
-      logger.remote(message);
-
-      // Prepare and push
-      var method = instruments.prepareLogObject();
-
-      method.debugData.push(instruments.prepareLogFunction(log));
-
-      inProcess.put(methodId, method);
-    }
-
-    return {
-      end: function() {
-        var fixArgs = Array.prototype.slice.call(args);
-        var log = instruments.prepareLogTexts(fn_name, fixArgs, filename, lineno, start);
-
-        var message = instruments.prepareLogMessage(log, 'outgoing');
-
-        if (message.length > 0) {
-          logger.remote(message);
-
-          var stackLines = [];
-
-          callsite().forEach(function(site){
-            var stackLine = [
-              site.getFunctionName() || 'anonymous' + " ",
-              site.getFileName() + " ",
-              site.getLineNumber() + " "
-            ].join();
-
-            stackLines.push(stackLine);
-          });
-
-          if (stackLines) {
-            stackLines.shift();
-            logger.verbose(stackLines.join("\n at "));
-          }
-
-          var method = inProcess.get(methodId) || null;
-
-          if (method !== null) {
-            method.debugData[0].endTimestamps = instruments.getDateTime(new Date());
-            //method.debugData[0].returnValue = JSON.stringify(log.argsText);
-            method.debugData[0].message = stackLines.join(' at ');
-            instruments.postBackLog(method);
-            inProcess.remove(methodId);
-          }
-        }
-      }
-    };
-  };
-};
 
 var node_environment = function(context, module, filename) {
     var req = function(path) {
@@ -214,11 +140,6 @@ module.exports = function(match) {
         match === undefined ?
             /.*/g : match;
 
-  function callConnectHooks() {
-    console.log('called!');
-    connectHooks();
-  }
-
   require.extensions['.js'] = function(module, filename) {
     if (!match.test(filename)) {
       return original_require(module, filename);
@@ -235,13 +156,21 @@ module.exports = function(match) {
     node_environment(module_context, module, filename);
 
     if (instruments.isModuleIncluded(filename)) {
-      if (filename === '/Users/davidov/Development/nodejs/qm-internal-beta/main.server/app/controllers/analytics/product-areas.js') {
-        logger.error('Got it');
+
+      src = analyzeCode(src, filename);
+
+      /* save instrumented code for instrumentation research */
+      if (instruments.shouldCreateTempCopy)
+      {
+        var tmp_file = "./tmp/"+filename.replace(':\\','');
+        var tmp_file_path = tmp_file.substring(0,tmp_file.lastIndexOf('\\'));
+
+        mkdirp.sync(tmp_file_path);
+        write(tmp_file, src);          
       }
+      /* END save instrumneted */
 
-      analyzeCode(src, filename);
-
-      logger.warn(filename);
+      //logger.warn(filename);
     }
 
     var apply_execution_context = module._compile(wrapper(Module.wrap(src)), filename),

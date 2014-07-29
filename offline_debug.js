@@ -99,38 +99,6 @@ var wrap_code = function(src, filename) {
     return src;
 };
 
-var node_environment = function(context, module, filename) {
-    var req = function(path) {
-        return Module._load(path, module);
-    };
-    req.resolve = function(request) {
-        return Module._resolveFilename(request, module)[1];
-    };
-    req.paths = Module._paths;
-    req.main = process.mainModule;
-    req.extensions = Module._extensions;
-    req.registerExtension = function() {
-        throw new Error('require.registerExtension() removed. Use ' +
-            'require.extensions instead.');
-    };
-    require.cache = Module._cache;
-
-    for (var k in global) {
-        context[k] = global[k];
-    }
-
-    context.require = req;
-    context.exports = module.exports;
-    context.__filename = filename;
-    context.__dirname = path.dirname(filename);
-    context.process = process;
-    context.console = console;
-    context.module = module;
-    context.global = context;
-
-    return context;
-};
-
 module.exports = function(match) {
     var original_require = require.extensions['.js']; //,
     //execution_context   = new ExecutionContext(),

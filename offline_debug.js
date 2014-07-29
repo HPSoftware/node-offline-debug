@@ -21,8 +21,7 @@ var ExecutionContext = function() {
   EE.call(this);
 };
 
-var inProcess = new map(),
-  functionHasEnded = false;
+var inProcess = new map();
 
 ExecutionContext.prototype = new EE();
 
@@ -261,27 +260,13 @@ module.exports = function(match) {
           return 'return (function(ctxt) { return (function(__start, __decl) { return ' + s + '; })(ctxt.__start, ctxt.__decl); })';
         };
 
-        src = wrap_code(src, filename);
-
-        /* save instrumented code for instrumentation research */
-        if (instruments.shouldCreateTempCopy)
-        {
-          var tmp_file = "./tmp/"+filename.replace(':\\','');
-          var tmp_file_path = tmp_file.substring(0,tmp_file.lastIndexOf('\\'));
-
-          mkdirp.sync(tmp_file_path);
-          write(tmp_file, src);
-        }
-        /* END save instrumneted */
-
         node_environment(module_context, module, filename);
 
         if (instruments.isModuleIncluded(filename)) {
           src = wrap_code(src, filename);
 
           /* save instrumented code for instrumentation research */
-          if (instruments.shouldCreateTempCopy)
-          {
+          if (instruments.shouldCreateTempCopy()) {
             var tmp_file = "./tmp/"+filename.replace(':\\','');
             var tmp_file_path = tmp_file.substring(0,tmp_file.lastIndexOf('\\'));
 

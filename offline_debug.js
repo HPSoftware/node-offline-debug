@@ -9,10 +9,10 @@ var instruments = require('./lib/instruments'),
   callsite    = require('callsite'),
   assert      = require('assert'),
   logger      = require('./lib/logger'),
-  map         = require('./lib/map');
+  map         = require('./lib/map'),
+  mkdirp      = require('mkdirp'),
+  write       = require('fs').writeFileSync;
   //, burrito = require('burrito')
-
-var first = 25;
 
 var ExecutionContext = function() {
   this.functions  = [];
@@ -42,9 +42,9 @@ var cache = function(fn) {
   return ret;
 };
 
-// function transformNodeSource(src, node) {
+// function transformNodeSource(src, start_line, fn_name) {
 //   //var data = read(__filename, 'utf8').split('\n');
-//   src = src.replace('{', '{ var __callop__ = __start(arguments.callee, arguments, __filename, ' + node.loc.start.line + '); try {');
+//   src = src.replace('{', '{ var __callop__ = __start(arguments.callee, arguments, __filename, ' + start_line + '); try {');
 //   // covers both functions ending with }) and just }
 //   src = src.replace(/\}\)$/, ';} finally { __callop__.end() } })');
 //   src = src.replace(/\}$/, ';} finally { __callop__.end() } }');
@@ -72,7 +72,7 @@ function transformNodeSource(src, args, _args, start_line, fn_name) {
   }
 
   src = src.replace('{',
-    '{ var __callop__ = __start(\''+fn_name+'\', arguments, __filename, ' + 
+    '{ var __callop__ = __start(\''+fn_name+'\', arguments, __filename, ' +
     start_line + ');'+
     'var retVal; try {'+
     'retVal = (function __offline_debug('+args.join(',')+'){');
@@ -102,10 +102,12 @@ var wrap_code = function(src, filename) {
             var src = node.source();
             var args = [], _args = [];
             var fn_name;
-            if (node.id) 
-              fn_name = node.id.name 
-            else 
+            if (node.id) {
+              fn_name = node.id.name;
+            } else {
               fn_name = 'anonymous_function';
+            }
+
             var fn_start_line = node.loc.start.line;
 
             for (var i = 0; i < node.params.length; ++i) {
@@ -113,19 +115,9 @@ var wrap_code = function(src, filename) {
               _args.push('__'+node.params[i].name);
             }
 
-            if (/*false && */first && filename.indexOf('bson') >= 0 )// >= 0 && args.length == 1 && args[0] == 'path') //node.id && (node.id.name.indexOf('capitalize') >= 0))
-            //if (node.id && (node.id.name.indexOf('urlencoded') >= 0))  //node.id && (node.id.name.indexOf('capitalize') >= 0))
-            {
-              logger.error('function filename: '+filename+' source:\n' + src + '\n');
-              logger.error('function params:\n' + args.join(',') + '\n');
-              logger.error('\n\n');
-              logger.error('function new source:\n' + 
-                transformNodeSource(src, args, _args, fn_start_line, fn_name) + '\n');
-              first--;
-            }
-
             //node.wrap(transformNodeSource); // burrito
             node.update(transformNodeSource(src, args, _args, fn_start_line, fn_name)); // falafel
+            //node.update(transformNodeSource(src, fn_start_line, fn_name)); // falafel
             // var src = node.source();
             // node.update(transformNodeSource(src, node)); // falafel
             // break;
@@ -143,9 +135,9 @@ var contribute_to_context = function(context, executionContext) {
     var methodId = start.getTime();
 
     // turn arguments into a true array
-    args = Array.prototype.slice.call(args);
+    var fixArgs = Array.prototype.slice.call(args).toString();
 
-    var log = instruments.prepareLogTexts(fn_name, args, filename, lineno, start);
+    var log = instruments.prepareLogTexts(fn_name, fixArgs, filename, lineno, start);
 
     var message = instruments.prepareLogMessage(log, 'incoming');
 
@@ -162,7 +154,6 @@ var contribute_to_context = function(context, executionContext) {
 
     return {
       end: function() {
-        var fixArgs = Array.prototype.slice.call(args);
         var log = instruments.prepareLogTexts(fn_name, fixArgs, filename, lineno, start);
 
         var message = instruments.prepareLogMessage(log, 'outgoing');
@@ -260,11 +251,28 @@ module.exports = function(match) {
           return 'return (function(ctxt) { return (function(__start, __decl) { return ' + s + '; })(ctxt.__start, ctxt.__decl); })';
         };
 
-        src = wrap_code(src, filename);
-
         node_environment(module_context, module, filename);
 
-        logger.warn(filename);
+        if (instruments.isModuleIncluded(filename)) {
+          src = wrap_code(src, filename);
+
+          /* save instrumented code for instrumentation research */
+          if (instruments.shouldCreateTempCopy)
+          {
+            var tmp_file = "./tmp/"+filename.replace(':\\','');
+            var tmp_file_path = tmp_file.substring(0,tmp_file.lastIndexOf('\\'));
+
+            mkdirp.sync(tmp_file_path);
+            write(tmp_file, src);
+          }
+          /* END save instrumneted */
+
+          if (filename === '/Users/davidov/Development/nodejs/qm-internal-beta/main.server/node_modules/express/node_modules/connect/node_modules/qs/index.js') {
+            logger.error('got it');
+          }
+
+          logger.warn(filename);
+        }
 
         var apply_execution_context = module._compile(wrapper(Module.wrap(src)), filename),
           execute_module = apply_execution_context(context),

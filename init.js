@@ -1,5 +1,5 @@
-var config          = require('./lib/config'),
-  debugOffline    = require('./offline_debug_hooks');
+var config          = require('./lib/config');
+var debugOffline    = require('./offline_debug');
 
 module.exports = function () {
     var waiting = true;

@@ -32,3 +32,11 @@ Dror:
 1. Added handling to results data preparing it for sending back to server
 2. Added some helpers such as Map to handle matching of incoming and outgoing messages - pending tests
 3. Added initial call to the server to pull configuration
+
+29/07/2014
+1. Fixed arguments formatting for log and messaging
+2. Remove the offline_debug_hooks.js
+3. In Logger.js changed Winston "exitOnError" value to true so an unhandled exception would stop the application
+4. In "offline_debug.js" merged Inbar changes, add the path library, added parameters like 'start_line'
+5. Removed some debugging code
+6. Removed "hooking" code from "instruments.js" file

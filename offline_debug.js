@@ -44,7 +44,6 @@ function transformNodeSource(src, filename, fn_name) {
     return src;
 }
 
-
 var wrap_code = function(src, filename) {
     // TODO: replace RETURN statements
     if (instruments.isActive()) {
@@ -118,8 +117,12 @@ module.exports = function(match) {
             src = read(filename, 'utf8');
 
         // inject a reference to instruments, so we can later use it to record function calls
-        src = instruments_require_string + src;
-        src = wrap_code(src, filename).toString();
+        if (instruments.isModuleIncluded(filename)) {
+          src = instruments_require_string + src;
+          src = wrap_code(src, filename).toString();
+
+          logger.warn(filename);
+        }
 
         /* save instrumented code for instrumentation research */
         if (instruments.shouldCreateTempCopy) {
@@ -129,10 +132,7 @@ module.exports = function(match) {
             mkdirp.sync(tmp_file_path);
             write(tmp_file, src);
         }
-        /* END save instrumneted */
-
-        logger.warn(filename);
-
+        /* end saving instrumented code */
 
         return module._compile(src, filename);
     };

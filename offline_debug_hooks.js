@@ -66,7 +66,7 @@ var analyzeCode = function(src, filename) {
               fn_name,
               key = instruments.createGuid(),
               fn_start_line = node.loc.start.line,
-              shortenFilename = filename.cutFromLastIndexOf('/'),
+              shortenFilename = instruments.shortenFileName(filename),
               args = [], id;
 
             for (var i = 0; i < node.params.length; ++i) {
@@ -86,19 +86,6 @@ var analyzeCode = function(src, filename) {
               instruments.alreadyHooked.put(shortenFilename, module);
             }
 
-            // Log every function name and start line number, if this is an anonymous function
-            // log it with a GUID
-            /*
-            if (fn_name !== 'anonymous_function') {
-              key = fn_name;
-            } else {
-              id = identifier(6);
-            }
-
-            if (fn_name === 'anonymous_function') {
-              node.update(transformNodeSource(src, id)); // falafel
-            }
-            */
             module.functions.put(fn_name, {
               "line": fn_start_line,
               "signature": "function " + fn_name + " (" + args.join(',') + ")"
@@ -110,71 +97,6 @@ var analyzeCode = function(src, filename) {
   return src;
 };
 
-var contribute_to_context = function(context, executionContext) {
-
-  context.__start = function(fn_name, args, filename, lineno) {
-    var start = new Date();
-    var methodId = start.getTime();
-
-    // turn arguments into a true array
-    args = Array.prototype.slice.call(args);
-
-    var log = instruments.prepareLogTexts(fn_name, args, filename, lineno, start);
-
-    var message = instruments.prepareLogMessage(log, 'incoming');
-
-    if (message.length > 0) {
-      logger.remote(message);
-
-      // Prepare and push
-      var method = instruments.prepareLogObject();
-
-      method.debugData.push(instruments.prepareLogFunction(log));
-
-      inProcess.put(methodId, method);
-    }
-
-    return {
-      end: function() {
-        var fixArgs = Array.prototype.slice.call(args);
-        var log = instruments.prepareLogTexts(fn_name, fixArgs, filename, lineno, start);
-
-        var message = instruments.prepareLogMessage(log, 'outgoing');
-
-        if (message.length > 0) {
-          logger.remote(message);
-
-          var stackLines = [];
-
-          callsite().forEach(function(site){
-            var stackLine = [
-              site.getFunctionName() || 'anonymous' + " ",
-              site.getFileName() + " ",
-              site.getLineNumber() + " "
-            ].join();
-
-            stackLines.push(stackLine);
-          });
-
-          if (stackLines) {
-            stackLines.shift();
-            logger.verbose(stackLines.join("\n at "));
-          }
-
-          var method = inProcess.get(methodId) || null;
-
-          if (method !== null) {
-            method.debugData[0].endTimestamps = instruments.getDateTime(new Date());
-            //method.debugData[0].returnValue = JSON.stringify(log.argsText);
-            method.debugData[0].message = stackLines.join(' at ');
-            instruments.postBackLog(method);
-            inProcess.remove(methodId);
-          }
-        }
-      }
-    };
-  };
-};
 
 var node_environment = function(context, module, filename) {
     var req = function(path) {
@@ -218,11 +140,6 @@ module.exports = function(match) {
         match === undefined ?
             /.*/g : match;
 
-  function callConnectHooks() {
-    console.log('called!');
-    connectHooks();
-  }
-
   require.extensions['.js'] = function(module, filename) {
     if (!match.test(filename)) {
       return original_require(module, filename);
@@ -239,9 +156,6 @@ module.exports = function(match) {
     node_environment(module_context, module, filename);
 
     if (instruments.isModuleIncluded(filename)) {
-      if (filename === '/Users/davidov/Development/nodejs/qm-internal-beta/main.server/app/controllers/analytics/product-areas.js') {
-        logger.error('Got it');
-      }
 
       src = analyzeCode(src, filename);
 
@@ -256,7 +170,7 @@ module.exports = function(match) {
       }
       /* END save instrumneted */
 
-      logger.warn(filename);
+      //logger.warn(filename);
     }
 
     var apply_execution_context = module._compile(wrapper(Module.wrap(src)), filename),

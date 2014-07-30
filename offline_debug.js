@@ -12,30 +12,31 @@ var instruments = require('./lib/instruments'),
     map = require('./lib/map'),
     mkdirp = require('mkdirp'),
     identifier = require('identifier'),
+    os = require('os'),
     write = require('fs').writeFileSync;
 
-var instruments_require_string = 'var __instruments = require(\'node_offline_debug\');\n'
+var instruments_require_string = 'var __instruments = require(\'node_offline_debug\');\n';
 
 function injectNameToFunction(src, fn_name) {
-    if (src.lastIndexOf('function(', 0) === 0) // check if there is a whitespace after 'function' 
+    if (src.lastIndexOf('function(', 0) === 0) // check if there is a whitespace after 'function'
         src = src.replace('(', ' ' + fn_name + '(');
     else
         src = src.replace('(', fn_name + '(');
     return src;
 }
 
-function transformNodeSource(src, filename, fn_name) {
+function transformNodeSource(src, filename, fn_name, line_number) {
     src = src.replace('{',
         '{\n' +
         'var start = new Date();\n' +
         'var methodId = start.getTime();\n' +
-        '__instruments.handlePreMessage([].slice.call(arguments, 1), \'' + fn_name + '\', \'' + filename + '\', start, methodId);\n' +
+        '__instruments.handlePreMessage(\'' + fn_name +'\', [].slice.call(arguments, 0), \'' + filename + '\', start, methodId, \'' + line_number + '\');\n' +
         'var retVal;\n' +
         ' try {\n');
     // covers both functions ending with }) and just }
     // TODO: performance efficient replacing
     var finally_string = '} finally {\n' +
-        '__instruments.handlePostMessage(retVal, \'' + fn_name + '\', \'' + filename + '\', methodId);\n' +
+        '__instruments.handlePostMessage(\'' + fn_name + '\',retVal, \'' + filename + '\', methodId);\n' +
         ' }\n' +
         '}'; // the last curly { is for the function itself
     src = src.replace(/\}\)$/, finally_string + ')');
@@ -57,6 +58,7 @@ var wrap_code = function(src, filename) {
                         var src = node.source();
                         var fn_name;
                         var args = [];
+                        var fn_start_line = node.loc.start.line;
 
                         for (var i = 0; i < node.params.length; ++i) {
                             args.push(node.params[i].name);
@@ -67,14 +69,14 @@ var wrap_code = function(src, filename) {
                         } else {
                             fn_name = identifier(6);
                             // inject generated name to an anon function
-                            src = injectNameToFunction(src, fn_name); 
+                            src = injectNameToFunction(src, fn_name);
                         }
 
                         // TODO: use full filenames, like in filenameForCache
                         //     - need to change every other lookup as well, including config
                         var filename_lookup = instruments.shortenFileName(filename);
 
-                        src = transformNodeSource(src, filename_lookup, fn_name);
+                        src = transformNodeSource(src, filename_lookup, fn_name, fn_start_line);
 
                         node.update(src);
                 }
@@ -111,12 +113,20 @@ module.exports = function(match) {
         }
 
         /* save instrumented code for instrumentation research */
-        if (instruments.shouldCreateTempCopy) {
-            var tmp_file = "./tmp/" + filename.replace(':\\', '');
-            var tmp_file_path = tmp_file.substring(0, tmp_file.lastIndexOf('\\'));
+        if (instruments.shouldCreateTempCopy()) {
+            var isWin = /^win/.test(process.platform),
+                tmp_file = '', tmp_file_path = '';
+            if (isWin) {
+                tmp_file = "./tmp/" + filename.replace(':\\', '');
+                tmp_file_path = tmp_file.substring(0, tmp_file.lastIndexOf('\\'));
+            } else {
 
-            mkdirp.sync(tmp_file_path);
-            write(tmp_file, src);
+            }
+
+            if (tmp.length > 0) {
+                mkdirp.sync(tmp_file_path);
+                write(tmp_file, src);
+            }
         }
         /* end saving instrumented code */
 

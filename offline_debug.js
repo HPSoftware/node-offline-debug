@@ -44,8 +44,16 @@ function transformNodeSource(src, filename, fn_name) {
     return src;
 }
 
+function transformReturnSource(src)
+{
+  // use paranthesis and comma (,) to asign the return value to retVal and then return it
+  src = src.replace('return ','return (retval=(\n');
+  src = src + '\n), retVal);\n';
+
+  return src;
+}
+
 var wrap_code = function(src, filename) {
-    // TODO: replace RETURN statements
     if (instruments.isActive()) {
         if (instruments.isModuleIncluded(filename)) {
             return falafel(src, {
@@ -67,7 +75,7 @@ var wrap_code = function(src, filename) {
                         } else {
                             fn_name = identifier(6);
                             // inject generated name to an anon function
-                            src = injectNameToFunction(src, fn_name); 
+                            src = injectNameToFunction(src, fn_name);
                         }
 
                         // TODO: use full filenames, like in filenameForCache
@@ -77,6 +85,15 @@ var wrap_code = function(src, filename) {
                         src = transformNodeSource(src, filename_lookup, fn_name);
 
                         node.update(src);
+
+                        break;
+                    case 'ReturnStatement':
+                        // TODO: encapsulate return statement with paranthesis
+                        //    and comma (orginal,set retVal)
+                        var src = node.source();
+                        src = transformReturnSource(src);
+                        node.update(src);
+                        break;
                 }
             });
         }
@@ -104,10 +121,10 @@ module.exports = function(match) {
 
         // inject a reference to instruments, so we can later use it to record function calls
         if (instruments.isModuleIncluded(filename)) {
-          src = instruments_require_string + src;
-          src = wrap_code(src, filename).toString();
+            src = instruments_require_string + src;
+            src = wrap_code(src, filename).toString();
 
-          logger.warn(filename);
+            logger.warn(filename);
         }
 
         /* save instrumented code for instrumentation research */

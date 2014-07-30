@@ -35,7 +35,7 @@ function transformNodeSource(src, filename, fn_name) {
     // covers both functions ending with }) and just }
     // TODO: performance efficient replacing
     var finally_string = '} finally {\n' +
-        '__instruments.handlePostMessate(retVal, \'' + fn_name + '\', \'' + filename + '\', methodId);\n' +
+        '__instruments.handlePostMessage(retVal, \'' + fn_name + '\', \'' + filename + '\', methodId);\n' +
         ' }\n' +
         '}'; // the last curly { is for the function itself
     src = src.replace(/\}\)$/, finally_string + ')');
@@ -77,20 +77,6 @@ var wrap_code = function(src, filename) {
                         src = transformNodeSource(src, filename_lookup, fn_name);
 
                         node.update(src);
-
-                        var module = instruments.alreadyHooked.get(filename_lookup);
-                        if (module === undefined) {
-                            module = {
-                                'scanned': false,
-                                'functions': new map()
-                            };
-                            instruments.alreadyHooked.put(filename_lookup, module);
-                        }
-
-                        module.functions.put(fn_name, {
-                            "line": node.loc.start.line,
-                            "signature": "function " + fn_name + " (" + args.join(',') + ")"
-                        });
                 }
             });
         }

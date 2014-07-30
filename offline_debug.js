@@ -48,8 +48,11 @@ function transformNodeSource(src, filename, fn_name, line_number) {
 function transformReturnSource(src)
 {
   // use paranthesis and comma (,) to asign the return value to retVal and then return it
-  src = src.replace('return ','return (retval=(\n');
-  src = src + '\n), retVal);\n';
+  src = src.replace('return ','return ((retval=(\n');
+  // remove trailing semicolons
+  src = src.replace(/;+$/, '');
+  // wrap the end of the return statement
+  src = src + '\n)), retVal);\n';
 
   return src;
 }
@@ -134,13 +137,16 @@ module.exports = function(match) {
             var isWin = /^win/.test(process.platform),
                 tmp_file = '', tmp_file_path = '';
             if (isWin) {
-                tmp_file = "./tmp/" + filename.replace(':\\', '');
-                tmp_file_path = tmp_file.substring(0, tmp_file.lastIndexOf('\\'));
-            } else {
+                tmp_file = filename.replace(':\\', '');
+            } 
+            else
+              tmp_file = filename;
+            
+            tmp_file = '.'+path.sep+'tmp'+path.sep+tmp_file;
+            tmp_file_path = path.dirname(tmp_file);
 
-            }
-
-            if (tmp.length > 0) {
+            console.log('\ntmp path: '+tmp_file_path+' name: '+tmp_file+'\n');
+            if (tmp_file.length > 0) {
                 mkdirp.sync(tmp_file_path);
                 write(tmp_file, src);
             }

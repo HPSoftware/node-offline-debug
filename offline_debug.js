@@ -90,7 +90,6 @@ function transformNodeSource(src, args, _args, start_line, fn_name) {
   return fn_signature + src;
 }
 
-
 var wrap_code = function(src, filename) {
   if (instruments.isActive()) {
     if (instruments.isModuleIncluded(filename)) {
@@ -125,8 +124,8 @@ var wrap_code = function(src, filename) {
             }
 
             //node.wrap(transformNodeSource); // burrito
-            node.update(transformNodeSource(src, args, _args, fn_start_line, fn_name)); // falafel
             //node.update(transformNodeSource(src, fn_start_line, fn_name)); // falafel
+            node.update(transformNodeSource(src, args, _args, fn_start_line, fn_name)); // falafel
             // var src = node.source();
             // node.update(transformNodeSource(src, node)); // falafel
             // break;
@@ -144,7 +143,7 @@ var contribute_to_context = function(context, executionContext) {
     var methodId = start.getTime();
 
     // turn arguments into a true array
-    var fixArgs = Array.prototype.slice.call(args).toString();
+    var fixArgs = Array.prototype.slice.call(args).toStringsArray();
 
     var log = instruments.prepareLogTexts(fn_name, fixArgs, filename, lineno, start);
 
@@ -163,7 +162,15 @@ var contribute_to_context = function(context, executionContext) {
 
     return {
       end: function() {
-        var log = instruments.prepareLogTexts(fn_name, fixArgs, filename, lineno, start);
+        var fixArgs = Array.prototype.slice.call(args),
+          retValue = instruments.formatReturnValue(this.end),
+          log;
+
+        if ((retValue !== null) && (retValue !== undefined)) {
+          log = instruments.prepareLogTextsEnd(fn_name, retValue, filename, lineno);
+        } else {
+          log = instruments.prepareLogTextsEnd(fn_name, [], filename, lineno);
+        }
 
         var message = instruments.prepareLogMessage(log, 'outgoing');
 
@@ -194,7 +201,9 @@ var contribute_to_context = function(context, executionContext) {
 
           if (method !== null) {
             method.debugData[0].endTimestamps = instruments.getDateTime(new Date());
-            //method.debugData[0].returnValue = JSON.stringify(log.argsText);
+            if (retValue) {
+              method.debugData[0].returnValue = JSON.stringify(retValue);
+            }
             method.debugData[0].message = stackLines.join(' at ');
             instruments.postBackLog(method);
             inProcess.remove(methodId);
@@ -260,24 +269,14 @@ module.exports = function(match) {
           return 'return (function(ctxt) { return (function(__start, __decl) { return ' + s + '; })(ctxt.__start, ctxt.__decl); })';
         };
 
+        if (filename === "/Users/davidov/Development/nodejs/AST-word-finder/node_modules/express/node_modules/connect/lib/middleware/urlencoded.js") {
+          console.log('Stop here!');
+        }
+
         node_environment(module_context, module, filename);
 
         if (instruments.isModuleIncluded(filename)) {
           src = wrap_code(src, filename);
-
-          /* save instrumented code for instrumentation research */
-          if (instruments.shouldCreateTempCopy()) {
-            var tmp_file = "./tmp/"+filename.replace(':\\','');
-            var tmp_file_path = tmp_file.substring(0,tmp_file.lastIndexOf('\\'));
-
-            mkdirp.sync(tmp_file_path);
-            write(tmp_file, src);
-          }
-          /* END save instrumneted */
-
-          if (filename === '/Users/davidov/Development/nodejs/qm-internal-beta/main.server/node_modules/express/node_modules/connect/node_modules/qs/index.js') {
-            logger.error('got it');
-          }
 
           logger.warn(filename);
         }

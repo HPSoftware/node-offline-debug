@@ -15,7 +15,36 @@ var instruments = require('./lib/instruments'),
     os = require('os'),
     write = require('fs').writeFileSync;
 
-var instruments_require_string = 'var __instruments = require(\'node_offline_debug\');\n';
+var instruments_require_string = 'var __instruments = require(\'node_offline_debug\');\n',
+    tmpReturnValues = new map();
+
+function getReturnCode(key) {
+    var fn_retvalue = tmpReturnValues.get(key);
+
+    if (fn_retvalue === undefined) {
+        fn_retvalue = identifier(6);
+        tmpReturnValues.put(key, fn_retvalue);
+    }
+
+    return fn_retvalue;
+}
+
+function lookupFunctionNode(node) {
+    var returnNode = node;
+
+    function goIn(node) {
+        if ((node.type === "FunctionExpression") || (node.type === "FunctionDeclaration")) {
+            returnNode = node;
+            return;
+        } else {
+            goIn(node.parent);
+        }
+    }
+
+    goIn(node);
+
+    return returnNode;
+}
 
 function injectNameToFunction(src, fn_name) {
     if (src.lastIndexOf('function(', 0) === 0) // check if there is a whitespace after 'function'
@@ -25,18 +54,18 @@ function injectNameToFunction(src, fn_name) {
     return src;
 }
 
-function transformNodeSource(src, filename, fn_name, line_number) {
+function transformNodeSource(src, filename, fn_name, line_number, fn_retvalue) {
     src = src.replace('{',
         '{\n' +
         'var start = new Date();\n' +
         'var methodId = start.getTime();\n' +
         '__instruments.handlePreMessage(\'' + fn_name +'\', [].slice.call(arguments, 0), \'' + filename + '\', start, methodId, \'' + line_number + '\');\n' +
-        'var retVal;\n' +
+        'var ' + fn_retvalue + ';\n' +
         ' try {\n');
     // covers both functions ending with }) and just }
     // TODO: performance efficient replacing
     var finally_string = '} finally {\n' +
-        '__instruments.handlePostMessage(\'' + fn_name + '\',retVal, \'' + filename + '\', methodId);\n' +
+        '__instruments.handlePostMessage(\'' + fn_name + '\',' + fn_retvalue + ', \'' + filename + '\', \'' + line_number + '\', methodId);\n' +
         ' }\n' +
         '}'; // the last curly { is for the function itself
     src = src.replace(/\}\)$/, finally_string + ')');
@@ -45,14 +74,14 @@ function transformNodeSource(src, filename, fn_name, line_number) {
     return src;
 }
 
-function transformReturnSource(src)
+function transformReturnSource(src, fn_retvalue)
 {
   // use paranthesis and comma (,) to asign the return value to retVal and then return it
-  src = src.replace('return ','return ((retval=(\n');
+  src = src.replace('return ','return ((' + fn_retvalue + '=(\n');
   // remove trailing semicolons
   src = src.replace(/;+$/, '');
   // wrap the end of the return statement
-  src = src + '\n)), retVal);\n';
+  src = src + '\n)), ' + fn_retvalue + ');\n';
 
   return src;
 }
@@ -60,6 +89,7 @@ function transformReturnSource(src)
 var wrap_code = function(src, filename) {
     if (instruments.isActive()) {
         if (instruments.isModuleIncluded(filename)) {
+
             return falafel(src, {
                 'loc': true
             }, function(node) {
@@ -68,12 +98,7 @@ var wrap_code = function(src, filename) {
                     case 'FunctionExpression':
                         var src = node.source();
                         var fn_name;
-                        var args = [];
                         var fn_start_line = node.loc.start.line;
-
-                        for (var i = 0; i < node.params.length; ++i) {
-                            args.push(node.params[i].name);
-                        }
 
                         if (node.id) {
                             fn_name = node.id.name;
@@ -86,8 +111,9 @@ var wrap_code = function(src, filename) {
                         // TODO: use full filenames, like in filenameForCache
                         //     - need to change every other lookup as well, including config
                         var filename_lookup = instruments.shortenFileName(filename);
+                        var fn_retvalue = getReturnCode(filename_lookup + '_' + fn_start_line);
 
-                        src = transformNodeSource(src, filename_lookup, fn_name, fn_start_line);
+                        src = transformNodeSource(src, filename_lookup, fn_name, fn_start_line, fn_retvalue);
 
                         node.update(src);
 
@@ -96,7 +122,16 @@ var wrap_code = function(src, filename) {
                         // TODO: encapsulate return statement with paranthesis
                         //    and comma (orginal,set retVal)
                         var src = node.source();
-                        src = transformReturnSource(src);
+                        var functionNode = lookupFunctionNode(node),
+                            filename_lookup = instruments.shortenFileName(filename);
+
+                        if (functionNode !== undefined) {
+                            var start_line = functionNode.loc.start.line;
+
+                            fn_retvalue = getReturnCode(filename_lookup + '_' + start_line);
+                        }
+
+                        src = transformReturnSource(src, fn_retvalue);
                         node.update(src);
                         break;
                 }
@@ -138,10 +173,10 @@ module.exports = function(match) {
                 tmp_file = '', tmp_file_path = '';
             if (isWin) {
                 tmp_file = filename.replace(':\\', '');
-            } 
+            }
             else
               tmp_file = filename;
-            
+
             tmp_file = '.'+path.sep+'tmp'+path.sep+tmp_file;
             tmp_file_path = path.dirname(tmp_file);
 

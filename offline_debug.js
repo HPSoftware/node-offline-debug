@@ -180,7 +180,6 @@ module.exports = function(match) {
             tmp_file = '.'+path.sep+'tmp'+path.sep+tmp_file;
             tmp_file_path = path.dirname(tmp_file);
 
-            console.log('\ntmp path: '+tmp_file_path+' name: '+tmp_file+'\n');
             if (tmp_file.length > 0) {
                 mkdirp.sync(tmp_file_path);
                 write(tmp_file, src);

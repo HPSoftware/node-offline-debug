@@ -2,28 +2,15 @@ node_offline_debug would enable debugging with not interruption for node.js appl
 
 
 Changes/Development log:
+31/07/2014
 
-26/06/2014
-
-Dror:
-
-1. Started breaking main module into pieces
-2. Added line number to every log line
-3. Re-formatted line to include the following:
-    * calling a function [filename] => [method_name]([arguments]) line#: [line_number]
-    * function return [filename] <= [method_name]([arguments]) line#: [line_number]
-
-   In case of an anonymous function, add a notification: An anonymous function
-
-29/06/2014
-
-Dror:
-
-1. Added a config module and corresponding files
-2. Added a mock.json based on the current REST get result
-3. Added a new "instruments" module to handle instrument activities besides core functionality. Message formatting, module/function exclude/include are all handled there.
-4. Implemented functionality to log only selected functions and ignore others
-5. Implemented partial module exclusion
+1. A short summary of last month's
+    1. Decided to go ahead with AST based solution
+    2. Changed the wrapping and code injection to better monitor code
+2. Bug fixes/changes:
+    1. Added a mechanism to have a random return value variable name
+    2. Check if method should be logged before processing any data
+    3. Return null/undefined instead of no return value
 
 30/06/2014
 
@@ -40,3 +27,25 @@ Dror:
 4. In "offline_debug.js" merged Inbar changes, add the path library, added parameters like 'start_line'
 5. Removed some debugging code
 6. Removed "hooking" code from "instruments.js" file
+
+29/06/2014
+
+Dror:
+
+1. Added a config module and corresponding files
+2. Added a mock.json based on the current REST get result
+3. Added a new "instruments" module to handle instrument activities besides core functionality. Message formatting, module/function exclude/include are all handled there.
+4. Implemented functionality to log only selected functions and ignore others
+5. Implemented partial module exclusion
+
+26/06/2014
+
+Dror:
+
+1. Started breaking main module into pieces
+2. Added line number to every log line
+3. Re-formatted line to include the following:
+    * calling a function [filename] => [method_name]([arguments]) line#: [line_number]
+    * function return [filename] <= [method_name]([arguments]) line#: [line_number]
+
+   In case of an anonymous function, add a notification: An anonymous function

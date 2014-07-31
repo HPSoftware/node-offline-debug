@@ -13,6 +13,7 @@ var instruments = require('./lib/instruments'),
     mkdirp = require('mkdirp'),
     identifier = require('identifier'),
     os = require('os'),
+    config = require('./lib/config'),
     write = require('fs').writeFileSync;
 
 var instruments_require_string = 'var __instruments = require(\'node_offline_debug\');\n',
@@ -115,9 +116,15 @@ var wrap_code = function(src, filename) {
                         if (node.id) {
                             fn_name = node.id.name;
                         } else {
-                            fn_name = identifier(6);
-                            // inject generated name to an anon function
-                            src = injectNameToFunction(src, fn_name);
+                            if (config.nameAnonymousFunctions) {
+                                fn_name = identifier(6);
+                                // inject generated name to an anon function
+
+                                src = injectNameToFunction(src, fn_name);
+                            }
+                            else {
+                                fn_name = "anonymous function";
+                            }
                         }
 
                         // TODO: use full filenames, like in filenameForCache

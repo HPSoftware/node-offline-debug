@@ -16,6 +16,7 @@ var instruments = require('./lib/instruments'),
     write = require('fs').writeFileSync;
 
 var instruments_require_string = 'var __instruments = require(\'node_offline_debug\');\n';
+var return_var_name = identifier(6);
 
 function injectNameToFunction(src, fn_name) {
     if (src.lastIndexOf('function(', 0) === 0) // check if there is a whitespace after 'function'
@@ -31,12 +32,12 @@ function transformNodeSource(src, filename, fn_name, line_number) {
         'var start = new Date();\n' +
         'var methodId = start.getTime();\n' +
         '__instruments.handlePreMessage(\'' + fn_name +'\', [].slice.call(arguments, 0), \'' + filename + '\', start, methodId, \'' + line_number + '\');\n' +
-        'var retVal;\n' +
+        'var '+return_var_name+';\n' +
         ' try {\n');
     // covers both functions ending with }) and just }
     // TODO: performance efficient replacing
     var finally_string = '} finally {\n' +
-        '__instruments.handlePostMessage(\'' + fn_name + '\',retVal, \'' + filename + '\', methodId);\n' +
+        '__instruments.handlePostMessage(\'' + fn_name + '\','+return_var_name+', \'' + filename + '\', methodId);\n' +
         ' }\n' +
         '}'; // the last curly { is for the function itself
     src = src.replace(/\}\)$/, finally_string + ')');
@@ -48,11 +49,11 @@ function transformNodeSource(src, filename, fn_name, line_number) {
 function transformReturnSource(src)
 {
   // use paranthesis and comma (,) to asign the return value to retVal and then return it
-  src = src.replace('return ','return ((retval=(\n');
+  src = src.replace('return ','return (('+return_var_name+'=(\n');
   // remove trailing semicolons
   src = src.replace(/;+$/, '');
   // wrap the end of the return statement
-  src = src + '\n)), retVal);\n';
+  src = src + '\n)), '+return_var_name+');\n';
 
   return src;
 }
@@ -141,11 +142,10 @@ module.exports = function(match) {
             } 
             else
               tmp_file = filename;
-            
+
             tmp_file = '.'+path.sep+'tmp'+path.sep+tmp_file;
             tmp_file_path = path.dirname(tmp_file);
 
-            console.log('\ntmp path: '+tmp_file_path+' name: '+tmp_file+'\n');
             if (tmp_file.length > 0) {
                 mkdirp.sync(tmp_file_path);
                 write(tmp_file, src);

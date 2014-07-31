@@ -100,12 +100,17 @@ var wrap_code = function(src, filename) {
             return falafel(src, {
                 'loc': true
             }, function(node) {
+                var src,
+                    fn_name,
+                    fn_start_line,
+                    filename_lookup,
+                    fn_retvalue;
+
                 switch (node.type) {
                     case 'FunctionDeclaration':
                     case 'FunctionExpression':
-                        var src = node.source();
-                        var fn_name;
-                        var fn_start_line = node.loc.start.line;
+                        src = node.source();
+                        fn_start_line = node.loc.start.line;
 
                         if (node.id) {
                             fn_name = node.id.name;
@@ -117,8 +122,8 @@ var wrap_code = function(src, filename) {
 
                         // TODO: use full filenames, like in filenameForCache
                         //     - need to change every other lookup as well, including config
-                        var filename_lookup = instruments.shortenFileName(filename);
-                        var fn_retvalue = getReturnCode(filename_lookup + '_' + fn_start_line);
+                        filename_lookup = instruments.shortenFileName(filename);
+                        fn_retvalue = getReturnCode(filename_lookup + '_' + fn_start_line);
 
                         src = transformNodeSource(src, filename_lookup, fn_name, fn_start_line, fn_retvalue);
 
@@ -128,9 +133,10 @@ var wrap_code = function(src, filename) {
                     case 'ReturnStatement':
                         // TODO: encapsulate return statement with paranthesis
                         //    and comma (orginal,set retVal)
-                        var src = node.source();
-                        var functionNode = lookupFunctionNode(node),
-                            filename_lookup = instruments.shortenFileName(filename);
+                        src = node.source();
+                        filename_lookup = instruments.shortenFileName(filename);
+
+                        var functionNode = lookupFunctionNode(node);
 
                         if (functionNode !== undefined) {
                             var start_line = functionNode.loc.start.line;

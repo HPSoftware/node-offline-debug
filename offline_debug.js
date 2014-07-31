@@ -74,16 +74,23 @@ function transformNodeSource(src, filename, fn_name, line_number, fn_retvalue) {
     return src;
 }
 
-function transformReturnSource(src, fn_retvalue)
-{
-  // use paranthesis and comma (,) to asign the return value to retVal and then return it
-  src = src.replace('return ','return ((' + fn_retvalue + '=(\n');
-  // remove trailing semicolons
-  src = src.replace(/;+$/, '');
-  // wrap the end of the return statement
-  src = src + '\n)), ' + fn_retvalue + ');\n';
+function transformReturnSource(src, fn_retvalue) {
+    var trimmedSrc = src.trim();
 
-  return src;
+    // If we just get return or return; we shouldn't use the return value
+    if ((trimmedSrc === 'return') && (trimmedSrc.length === 'return'.length) ||
+        (trimmedSrc === 'return;') && (trimmedSrc.length === 'return;'.length)) {
+        return src;
+    }
+
+    // use paranthesis and comma (,) to asign the return value to retVal and then return it
+    src = src.replace('return ','return ((' + fn_retvalue + '=(\n');
+    // remove trailing semicolons
+    src = src.replace(/;+$/, '');
+    // wrap the end of the return statement
+    src = src + '\n)), ' + fn_retvalue + ');\n';
+
+    return src;
 }
 
 var wrap_code = function(src, filename) {

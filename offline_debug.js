@@ -55,12 +55,12 @@ function injectNameToFunction(src, fn_name) {
     return src;
 }
 
-function transformNodeSource(src, filename, fn_name, args, line_number, fn_retvalue) {
+function transformNodeSource(src, filename, fn_name, args, line_number, fn_retvalue, fn_isAnonymous) {
     src = src.replace('{',
         '{\n' +
         'var start = new Date();\n' +
         'var methodId = start.getTime();\n' +
-        '__instruments.handlePreMessage(\'' + fn_name +'\',\'' +  args + '\'  , [].slice.call(arguments, 0), \'' + filename + '\', start, methodId, \'' + line_number + '\');\n' +
+        '__instruments.handlePreMessage(\'' + fn_name +'\',\'' +  args + '\'  , [].slice.call(arguments, 0), \'' + filename + '\', start, methodId, \'' + line_number + '\', ' + fn_isAnonymous + ', arguments.callee);\n' +
         'var ' + fn_retvalue + ';\n' +
         ' try {\n');
     // covers both functions ending with }) and just }
@@ -106,6 +106,7 @@ var wrap_code = function(src, filename) {
                     fn_start_line,
                     filename_lookup,
                     fn_retvalue,
+                    fn_isAnonymous = false,
                     args = [];
 
                 switch (node.type) {
@@ -117,15 +118,16 @@ var wrap_code = function(src, filename) {
                         if (node.id) {
                             fn_name = node.id.name;
                         } else {
-                            if (config.nameAnonymousFunctions) {
+                            //if (config.nameAnonymousFunctions) {
                                 fn_name = identifier(6);
                                 // inject generated name to an anon function
 
                                 src = injectNameToFunction(src, fn_name);
-                            }
-                            else {
-                                fn_name = "anonymous function";
-                            }
+                                fn_isAnonymous = true;
+                            // }
+                            // else {
+                            //     fn_name = "anonymous function";
+                            // }
                         }
 
                         for (var i = 0; i < node.params.length; ++i) {
@@ -136,8 +138,9 @@ var wrap_code = function(src, filename) {
                         //     - need to change every other lookup as well, including config
                         filename_lookup = instruments.shortenFileName(filename);
                         fn_retvalue = getReturnCode(filename_lookup + '_' + fn_start_line);
+                        instruments.fnNameAndFilename.put(fn_name, filename_lookup + '_' + fn_start_line);
 
-                        src = transformNodeSource(src, filename_lookup, fn_name, args, fn_start_line, fn_retvalue);
+                        src = transformNodeSource(src, filename_lookup, fn_name, args, fn_start_line, fn_retvalue, fn_isAnonymous);
 
                         node.update(src);
 

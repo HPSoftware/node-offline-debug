@@ -3,8 +3,9 @@
     "exclude": ["express", "elasticsearch", "node_modules"],
     "useMock": false,
     "logAnonymousFunctions": true,
-    "createTempCopyOfInstrumention": false,
-    "nameAnonymousFunctions": false,
+    "createTempCopyOfInstrumention": true,
+    "nameAnonymousFunctions": true,
+    "useGivenNames": true,
     "url": "ec2-54-189-147-119.us-west-2.compute.amazonaws.com",
     "mock_file": "../config/mock.json",
     "username": "seffy",
@@ -18,14 +19,15 @@
         "port": 3001
     },
     "logging": {
+        "globalLogLevel": "remote",
         "levels": {
             "verbose": 1,
             "info": 2,
-            "data": 3,
-            "warn": 4,
-            "debug": 5,
-            "error": 6,
-            "remote": 7
+            "remote": 3,
+            "data": 4,
+            "warn": 5,
+            "debug": 6,
+            "error": 7
         },
         "colors": {
             "verbose": "cyan",

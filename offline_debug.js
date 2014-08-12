@@ -55,12 +55,12 @@ function injectNameToFunction(src, fn_name) {
     return src;
 }
 
-function transformNodeSource(src, filename, fn_name, line_number, fn_retvalue) {
+function transformNodeSource(src, filename, fn_name, args, line_number, fn_retvalue) {
     src = src.replace('{',
         '{\n' +
         'var start = new Date();\n' +
         'var methodId = start.getTime();\n' +
-        '__instruments.handlePreMessage(\'' + fn_name +'\', [].slice.call(arguments, 0), \'' + filename + '\', start, methodId, \'' + line_number + '\');\n' +
+        '__instruments.handlePreMessage(\'' + fn_name +'\',\'' +  args + '\'  , [].slice.call(arguments, 0), \'' + filename + '\', start, methodId, \'' + line_number + '\');\n' +
         'var ' + fn_retvalue + ';\n' +
         ' try {\n');
     // covers both functions ending with }) and just }
@@ -105,7 +105,8 @@ var wrap_code = function(src, filename) {
                     fn_name,
                     fn_start_line,
                     filename_lookup,
-                    fn_retvalue;
+                    fn_retvalue,
+                    args = [];
 
                 switch (node.type) {
                     case 'FunctionDeclaration':
@@ -127,12 +128,16 @@ var wrap_code = function(src, filename) {
                             }
                         }
 
+                        for (var i = 0; i < node.params.length; ++i) {
+                            args.push(node.params[i].name);
+                        }
+
                         // TODO: use full filenames, like in filenameForCache
                         //     - need to change every other lookup as well, including config
                         filename_lookup = instruments.shortenFileName(filename);
                         fn_retvalue = getReturnCode(filename_lookup + '_' + fn_start_line);
 
-                        src = transformNodeSource(src, filename_lookup, fn_name, fn_start_line, fn_retvalue);
+                        src = transformNodeSource(src, filename_lookup, fn_name, args, fn_start_line, fn_retvalue);
 
                         node.update(src);
 
@@ -162,9 +167,7 @@ var wrap_code = function(src, filename) {
 };
 
 module.exports = function(match) {
-    var original_require = require.extensions['.js']; //,
-    //execution_context   = new ExecutionContext(),
-    //context             = contribute_to_context({}, execution_context);
+    var original_require = require.extensions['.js'];
 
     match = typeof match === 'string' ?
         new RegExp(match.replace(/\//g, '\\/').replace(/\./g, '\\.')) :
@@ -184,7 +187,7 @@ module.exports = function(match) {
             src = instruments_require_string + src;
             src = wrap_code(src, filename).toString();
 
-            logger.warn(filename);
+            logger.info(filename);
         }
 
         /* save instrumented code for instrumentation research */

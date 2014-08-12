@@ -7,7 +7,6 @@ var instruments = require('./lib/instruments'),
     util = require('util'),
     strings = require('./lib/strings'),
     callsite = require('callsite'),
-    assert = require('assert'),
     logger = require('./lib/logger'),
     map = require('./lib/map'),
     mkdirp = require('mkdirp'),
@@ -60,7 +59,7 @@ function transformNodeSource(src, filename, fn_name, args, line_number, fn_retva
         '{\n' +
         'var start = new Date();\n' +
         'var methodId = start.getTime();\n' +
-        '__instruments.handlePreMessage(\'' + fn_name +'\',\'' +  args + '\'  , [].slice.call(arguments, 0), \'' + filename + '\', start, methodId, \'' + line_number + '\', ' + fn_isAnonymous + ', arguments.callee);\n' +
+        '__instruments.handlePreMessage(\'' + fn_name +'\',\'' +  args + '\'  , [].slice.call(arguments, 0), \'' + filename + '\', start, methodId, \'' + line_number + '\', ' + fn_isAnonymous + ');\n' +
         'var ' + fn_retvalue + ';\n' +
         ' try {\n');
     // covers both functions ending with }) and just }
@@ -118,16 +117,11 @@ var wrap_code = function(src, filename) {
                         if (node.id) {
                             fn_name = node.id.name;
                         } else {
-                            //if (config.nameAnonymousFunctions) {
-                                fn_name = identifier(6);
-                                // inject generated name to an anon function
+                            fn_name = identifier(6);
+                            // inject generated name to an anon function
 
-                                src = injectNameToFunction(src, fn_name);
-                                fn_isAnonymous = true;
-                            // }
-                            // else {
-                            //     fn_name = "anonymous function";
-                            // }
+                            src = injectNameToFunction(src, fn_name);
+                            fn_isAnonymous = true;
                         }
 
                         for (var i = 0; i < node.params.length; ++i) {

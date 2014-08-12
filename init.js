@@ -1,6 +1,6 @@
-var config          = require('./lib/config'),
-  debugOffline    = require('./offline_debug'),
-  _instruments     = require('./lib/instruments.js');
+var config = require('./lib/config'),
+  debugOffline = require('./offline_debug'),
+  _instruments = require('./lib/instruments.js');
 
 // initialization code, run once when module is loaded
 var waiting = true;

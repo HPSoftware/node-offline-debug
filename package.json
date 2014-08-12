@@ -1,6 +1,6 @@
 {
   "name": "node_offline_debug",
-  "version" : "0.0.5",
+  "version": "0.0.5",
   "description": "Enable offline debugging of node.js functions",
   "main": "init.js",
   "dependencies": {
@@ -16,9 +16,8 @@
     "offline"
   ],
   "author": {
-    "name" : "HP Software",
-    "email" : "inbar.shani@hp.com",
-    "email": "dror.avidov@hp.com"
+    "name": "HP Software",
+    "email": "inbar.shani@hp.com"
   },
   "engine": {
     "node": ">=0.4"

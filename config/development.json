@@ -1,6 +1,6 @@
 {
     "active": true,
-    "exclude": ["express", "elasticsearch", "node_modules"],
+    "exclude": ["express", "elasticsearch", "node_modules", "monitor"],
     "useMock": false,
     "logAnonymousFunctions": true,
     "createTempCopyOfInstrumention": true,

@@ -19,7 +19,7 @@
         "port": 3001
     },
     "logging": {
-        "globalLogLevel": "remote",
+        "globalLogLevel": "info",
         "levels": {
             "verbose": 1,
             "info": 2,

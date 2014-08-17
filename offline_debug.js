@@ -15,7 +15,8 @@ var instruments = require('./lib/instruments'),
     write = require('fs').writeFileSync;
 
 var instruments_require_string = 'var __instruments = require(\'node_offline_debug\');\n',
-    tmpReturnValues = new map();
+    tmpReturnValues = new map(),
+    astMethodIdCounter = Math.floor(Math.random() * 1000) + 1;
 
 function getReturnCode(key) {
     var fn_retvalue = tmpReturnValues.get(key);
@@ -53,18 +54,16 @@ function injectNameToFunction(src, fn_name) {
     return src;
 }
 
-function transformNodeSource(src, filename, fn_name, args, line_number, fn_retvalue, fn_isAnonymous) {
+function transformNodeSource(src, filename, fn_name, args, line_number, fn_retvalue, fn_isAnonymous, fn_methodId) {
     src = src.replace('{',
         '{\n' +
-        'var start = Date.now();\n' +
-        'var methodId = start.getTime();\n' +
-        '__instruments.handlePreMessage(\'' + fn_name +'\',\'' +  args + '\'  , [].slice.call(arguments, 0), \'' + filename + '\', start, methodId, \'' + line_number + '\', ' + fn_isAnonymous + ');\n' +
+        '__instruments.handlePreMessage(\'' + fn_name +'\',\'' +  args + '\'  , [].slice.call(arguments, 0), \'' + filename + '\', \'' + fn_methodId + '\', \'' + line_number + '\', ' + fn_isAnonymous + ');\n' +
         'var ' + fn_retvalue + ';\n' +
         ' try {\n');
     // covers both functions ending with }) and just }
     // TODO: performance efficient replacing
     var finally_string = '} finally {\n' +
-        '__instruments.handlePostMessage(\'' + fn_name + '\',' + fn_retvalue + ', \'' + filename + '\', \'' + line_number + '\', methodId);\n' +
+        '__instruments.handlePostMessage(\'' + fn_name + '\',' + fn_retvalue + ', \'' + filename + '\', \'' + line_number + '\', \'' + fn_methodId + '\');\n' +
         ' }\n' +
         '}'; // the last curly { is for the function itself
     src = src.replace(/\}\)$/, finally_string + ')');
@@ -133,7 +132,8 @@ var wrap_code = function(src, filename) {
                         fn_retvalue = getReturnCode(filename_lookup + '_' + fn_start_line);
                         instruments.fnNameAndFilename.put(fn_name, filename_lookup + '_' + fn_start_line);
 
-                        src = transformNodeSource(src, filename_lookup, fn_name, args, fn_start_line, fn_retvalue, fn_isAnonymous);
+                        src = transformNodeSource(src, filename_lookup, fn_name, args, fn_start_line, fn_retvalue, fn_isAnonymous, astMethodIdCounter);
+                        astMethodIdCounter = astMethodIdCounter + 1;
 
                         node.update(src);
 

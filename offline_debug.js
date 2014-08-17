@@ -11,6 +11,7 @@ var instruments = require('./lib/instruments'),
     mkdirp = require('mkdirp'),
     identifier = require('identifier'),
     os = require('os'),
+    set = require('./lib/set'),
     config = require('./lib/config'),
     write = require('fs').writeFileSync;
 
@@ -54,16 +55,22 @@ function injectNameToFunction(src, fn_name) {
 }
 
 function transformNodeSource(src, filename, fn_name, args, line_number, fn_retvalue, fn_isAnonymous) {
+    line_number = line_number - 4;
     src = src.replace('{',
-        '{\n' +
-        'var methodId = Date.now();\n' +
-        '__instruments.handlePreMessage(\'' + fn_name +'\',\'' +  args + '\'  , [].slice.call(arguments, 0), \'' + filename + '\', methodId, \'' + line_number + '\', ' + fn_isAnonymous + ');\n' +
-        'var ' + fn_retvalue + ';\n' +
-        ' try {\n');
+        '{\n ' +
+            'if (__instruments.lookupSet.contains("' + filename + '&&~%%' + line_number + '")) { ' +
+                'var methodId = Date.now();\n' +
+                '__instruments.handlePreMessage(\'' + fn_name +'\',\'' +  args + '\'  , [].slice.call(arguments, 0), \'' + filename + '\', methodId, \'' + line_number + '\', ' + fn_isAnonymous + ');\n' +
+                'var ' + fn_retvalue + ';\n' +
+            ' }\n' +
+            ' try {\n');
+
     // covers both functions ending with }) and just }
     // TODO: performance efficient replacing
     var finally_string = '} finally {\n' +
-        '__instruments.handlePostMessage(\'' + fn_name + '\',' + fn_retvalue + ', \'' + filename + '\', \'' + line_number + '\', methodId);\n' +
+        'if (__instruments.lookupSet.contains("' + filename + '&&~%%' + line_number + '")) { ' +
+                '__instruments.handlePostMessage(\'' + fn_name + '\',' + fn_retvalue + ', \'' + filename + '\', \'' + line_number + '\', methodId);\n' +
+            ' }\n' +
         ' }\n' +
         '}'; // the last curly { is for the function itself
     src = src.replace(/\}\)$/, finally_string + ')');
@@ -104,6 +111,7 @@ var wrap_code = function(src, filename) {
                     filename_lookup,
                     fn_retvalue,
                     fn_isAnonymous = false,
+                    fn_shouldBeWrapped = false,
                     args = [];
 
                 switch (node.type) {

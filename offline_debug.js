@@ -113,7 +113,6 @@ var wrap_code = function(src, filename) {
                     filename_lookup,
                     fn_retvalue,
                     fn_isAnonymous = false,
-                    fn_shouldBeWrapped = false,
                     args = [];
 
                 switch (node.type) {

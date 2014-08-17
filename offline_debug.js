@@ -6,7 +6,6 @@ var instruments = require('./lib/instruments'),
     falafel = require('falafel'),
     util = require('util'),
     strings = require('./lib/strings'),
-    callsite = require('callsite'),
     logger = require('./lib/logger'),
     map = require('./lib/map'),
     mkdirp = require('mkdirp'),
@@ -57,7 +56,7 @@ function injectNameToFunction(src, fn_name) {
 function transformNodeSource(src, filename, fn_name, args, line_number, fn_retvalue, fn_isAnonymous) {
     src = src.replace('{',
         '{\n' +
-        'var start = new Date();\n' +
+        'var start = Date.now();\n' +
         'var methodId = start.getTime();\n' +
         '__instruments.handlePreMessage(\'' + fn_name +'\',\'' +  args + '\'  , [].slice.call(arguments, 0), \'' + filename + '\', start, methodId, \'' + line_number + '\', ' + fn_isAnonymous + ');\n' +
         'var ' + fn_retvalue + ';\n' +

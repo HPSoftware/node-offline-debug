@@ -5,7 +5,6 @@
   "main": "init.js",
   "dependencies": {
     "falafel": "0.X.X",
-    "callsite": "1.X.X",
     "winston": "0.X.X",
     "identifier": "0.X.X",
     "mkdirp" : "0.X.X",

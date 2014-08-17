@@ -54,22 +54,24 @@ function injectNameToFunction(src, fn_name) {
     return src;
 }
 
-function transformNodeSource(src, filename, fn_name, args, line_number, fn_retvalue, fn_isAnonymous) {
-    line_number = line_number - 4;
+function transformNodeSource(src, filename, fn_name, args, line_number, fn_var, fn_isAnonymous) {
+    line_number = line_number - 1;
     src = src.replace('{',
         '{\n ' +
-            'if (__instruments.lookupSet.contains("' + filename + '&&~%%' + line_number + '")) { ' +
+            'var ' + fn_var + ';\n' +
+            'var '+ fn_var+'_shouldInstrument = ' +
+            '(__instruments.lookupSet.contains("' + filename + config.methodSignatureSeparator + line_number + '"));\n' +
+            'if  ('+ fn_var+'_shouldInstrument) { ' +
                 'var methodId = Date.now();\n' +
                 '__instruments.handlePreMessage(\'' + fn_name +'\',\'' +  args + '\'  , [].slice.call(arguments, 0), \'' + filename + '\', methodId, \'' + line_number + '\', ' + fn_isAnonymous + ');\n' +
-                'var ' + fn_retvalue + ';\n' +
             ' }\n' +
             ' try {\n');
 
     // covers both functions ending with }) and just }
     // TODO: performance efficient replacing
     var finally_string = '} finally {\n' +
-        'if (__instruments.lookupSet.contains("' + filename + '&&~%%' + line_number + '")) { ' +
-                '__instruments.handlePostMessage(\'' + fn_name + '\',' + fn_retvalue + ', \'' + filename + '\', \'' + line_number + '\', methodId);\n' +
+        'if  ('+ fn_var+'_shouldInstrument) { ' +
+                '__instruments.handlePostMessage(\'' + fn_name + '\',' + fn_var + ', \'' + filename + '\', \'' + line_number + '\', methodId);\n' +
             ' }\n' +
         ' }\n' +
         '}'; // the last curly { is for the function itself
@@ -79,7 +81,7 @@ function transformNodeSource(src, filename, fn_name, args, line_number, fn_retva
     return src;
 }
 
-function transformReturnSource(src, fn_retvalue) {
+function transformReturnSource(src, fn_var) {
     var trimmedSrc = src.trim();
 
     // If we just get return or return; we shouldn't use the return value
@@ -89,11 +91,11 @@ function transformReturnSource(src, fn_retvalue) {
     }
 
     // use paranthesis and comma (,) to asign the return value to retVal and then return it
-    src = src.replace('return ','return ((' + fn_retvalue + '=(\n');
+    src = src.replace('return ','return ((' + fn_var + '=(\n');
     // remove trailing semicolons
     src = src.replace(/;+$/, '');
     // wrap the end of the return statement
-    src = src + '\n)), ' + fn_retvalue + ');\n';
+    src = src + '\n)), ' + fn_var + ');\n';
 
     return src;
 }

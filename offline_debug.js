@@ -56,11 +56,12 @@ function injectNameToFunction(src, fn_name) {
 
 function transformNodeSource(src, filename, fn_name, args, line_number, fn_var, fn_isAnonymous) {
     line_number = line_number - 1;
+    var methodLookup = instruments.getFunctionUniqueID(filename, line_number);
     src = src.replace('{',
         '{\n ' +
             'var ' + fn_var + ';\n' +
-            'var '+ fn_var+'_shouldInstrument = ' +
-            '(typeof __instruments.lookupMap["' + filename + config.methodSignatureSeparator + line_number + '"] !== \"undefined\");\n' +
+            'var ' + fn_var + '_shouldInstrument = ' +
+            '(typeof __instruments.lookupMap[' + methodLookup + '] !== \"undefined\");\n' +
             'if  ('+ fn_var+'_shouldInstrument) { ' +
                 'var methodId = Date.now();\n' +
                 '__instruments.handlePreMessage(\'' + fn_name +'\',\'' +  args + '\'  , [].slice.call(arguments, 0), \'' + filename + '\', methodId, \'' + line_number + '\', ' + fn_isAnonymous + ');\n' +
@@ -126,8 +127,8 @@ var wrap_code = function(src, filename) {
                         } else {
                             fn_name = identifier(6);
                             // inject generated name to an anon function
-
-                            src = injectNameToFunction(src, fn_name);
+                            if (config.nameAnonymousFunctions)
+                                src = injectNameToFunction(src, fn_name);
                             fn_isAnonymous = true;
                         }
 

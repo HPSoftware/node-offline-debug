@@ -8,7 +8,8 @@
     "winston": "0.X.X",
     "identifier": "0.X.X",
     "mkdirp" : "0.X.X",
-    "traceback": "0.X.X"
+    "traceback": "0.X.X",
+    "tunnel": "0.X.X"
   },
   "keywords": [
     "instrumentation",

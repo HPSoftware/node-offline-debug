@@ -60,7 +60,7 @@ function transformNodeSource(src, filename, fn_name, args, line_number, fn_var, 
         '{\n ' +
             'var ' + fn_var + ';\n' +
             'var '+ fn_var+'_shouldInstrument = ' +
-            '(typeof __instruments.lookupSet["' + filename + config.methodSignatureSeparator + line_number + '"] !== \"undefined\");\n' +
+            '(typeof __instruments.lookupMap["' + filename + config.methodSignatureSeparator + line_number + '"] !== \"undefined\");\n' +
             'if  ('+ fn_var+'_shouldInstrument) { ' +
                 'var methodId = Date.now();\n' +
                 '__instruments.handlePreMessage(\'' + fn_name +'\',\'' +  args + '\'  , [].slice.call(arguments, 0), \'' + filename + '\', methodId, \'' + line_number + '\', ' + fn_isAnonymous + ');\n' +

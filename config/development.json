@@ -5,6 +5,8 @@
     "logAnonymousFunctions": true,
     "createTempCopyOfInstrumention": true,
     "nameAnonymousFunctions": true,
+    "postUsingChildProcess": true,
+    "postChildProcessTimeout": 30000,
     "useGivenNames": true,
     "url": "ec2-54-189-147-119.us-west-2.compute.amazonaws.com",
     "url_getFunctions": "/OfflineDebugger/CodeSelection/Functions",

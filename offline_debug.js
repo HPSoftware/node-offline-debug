@@ -11,7 +11,6 @@ var instruments = require('./lib/instruments'),
     mkdirp = require('mkdirp'),
     identifier = require('identifier'),
     os = require('os'),
-    set = require('./lib/set'),
     config = require('./lib/config'),
     write = require('fs').writeFileSync;
 

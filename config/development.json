@@ -6,6 +6,7 @@
     "createTempCopyOfInstrumention": true,
     "nameAnonymousFunctions": true,
     "useGivenNames": true,
+    "compressPosts": true,
     "url": "ec2-54-189-147-119.us-west-2.compute.amazonaws.com",
     "url_getFunctions": "/OfflineDebugger/CodeSelection/Functions",
     "url_postData": "/OfflineDebugger/DebugData/Data",

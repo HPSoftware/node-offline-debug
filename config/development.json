@@ -6,10 +6,13 @@
     "createTempCopyOfInstrumention": true,
     "nameAnonymousFunctions": false,
     "useGivenNames": true,
+    "compressPosts": true,
     "url": "ec2-54-189-147-119.us-west-2.compute.amazonaws.com",
     "url_getFunctions": "/OfflineDebugger/CodeSelection/Functions",
     "url_postData": "/OfflineDebugger/DebugData/Data",
     "mock_file": "../config/mock.json",
+    "fileToLoad": "",
+    "dummy_fileToLoad": "routes/wines.js",
     "username": "seffy",
     "password": "seffy",
     "autoCheckConfiguration" : {

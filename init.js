@@ -1,6 +1,7 @@
 var config = require('./lib/config'),
   debugOffline = require('./offline_debug'),
   logger = require('./lib/logger'),
+  network = require('./lib/network'),
   _instruments = require('./lib/instruments.js');
 
 // initialization code, run once when module is loaded

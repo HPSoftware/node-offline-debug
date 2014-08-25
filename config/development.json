@@ -12,6 +12,8 @@
     "url_getFunctions": "/OfflineDebugger/CodeSelection/Functions",
     "url_postData": "/OfflineDebugger/DebugData/Data",
     "mock_file": "../config/mock.json",
+    "fileToLoad": "",
+    "dummy_fileToLoad": "routes/wines.js",
     "username": "seffy",
     "password": "seffy",
     "autoCheckConfiguration" : {

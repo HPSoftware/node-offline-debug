@@ -1,51 +1,47 @@
-node_offline_debug would enable debugging with not interruption for node.js applications.
+Node offline debug
+===============================
+
+This package can instrument your node.js application so you can track functions execution in real-time.
+Instrumentation configuration can be set via configuration file or via an external service, such as HP AppDebug. Such a service allows for dynamic changes to what is being tracked, so the application doesn't need to be restarted (as opposed to printing console messages).
+
+## Example
+
+To instrument your package, simply reference node_offline_debug in your package.json, and then require the package first thing in your app. All the packages that are loaded afterwards will be instrumented.
+
+	// load the instrumentation
+	var instrument = require('node_offline_debug');
+
+	// All required module below are analyzed
+	var server = require('./server.js');
 
 
-Changes/Development log:
-31/07/2014
+## How it works
 
-1. A short summary of last month's
-    1. Decided to go ahead with AST based solution
-    2. Changed the wrapping and code injection to better monitor code
-2. Bug fixes/changes:
-    1. Added a mechanism to have a random return value variable name
-    2. Check if method should be logged before processing any data
-    3. Return null/undefined instead of no return value
+node_offline_debug replaces the require handler for .js files.
+When a file is loaded, it injects code into every function (including annonymous functions) to report upon function call and return. The injected code first checks if the function is tracked, to avoid additional overhead if it is not. Tracked functions are reported on every invocation completion, with the values of incoming arguments as well as the return value.
 
-30/06/2014
+## Configuration options
 
-Dror:
+Configuration can be specified in a json file under config folder, named according to NODE_ENV variable. If no configuration file is set, defaults are loaded by code. If an AppDebug server is specified, some configuration options are loaded from it.
 
-1. Added handling to results data preparing it for sending back to server
-2. Added some helpers such as Map to handle matching of incoming and outgoing messages - pending tests
-3. Added initial call to the server to pull configuration
+1. "exclude": ["express", "elasticsearch", "node_modules", "monitor"]
+	List of instrumentation exclusions. Files which has any of these strings in their path when loaded will not be instrumented at all.
+2.  "nameAnonymousFunctions": false
+	This option allows for generating random names for anonymous functions, for clarity in reporting function invocation.
+3. "compressPosts": true
+	Set to 'true' to compress outgoing traffic (tracked functions reports) from the instrumentation. Can be used to minimize network overhead. 
+4. "url": "server.com"
+	Base URL for the AppDebug service.
+5. "username": "seffy",
+   "password": "seffy"
+   Username and password to access AppDebug service.
+6. "autoCheckConfiguration" : {
+        "once": false,
+        "every": 10000
+    }
+    If set, determines how function instrumentation setup is retrieved from the AppDebug service. If 'once' is set to 'true', function tracking will only be checked once when node_offline_debug is loaded, otherwise it will be retrieved routinely, according to the 'every' miliseconds setting.
 
-29/07/2014
-1. Fixed arguments formatting for log and messaging
-2. Remove the offline_debug_hooks.js
-3. In Logger.js changed Winston "exitOnError" value to true so an unhandled exception would stop the application
-4. In "offline_debug.js" merged Inbar changes, add the path library, added parameters like 'start_line'
-5. Removed some debugging code
-6. Removed "hooking" code from "instruments.js" file
 
-29/06/2014
+## License
 
-Dror:
-
-1. Added a config module and corresponding files
-2. Added a mock.json based on the current REST get result
-3. Added a new "instruments" module to handle instrument activities besides core functionality. Message formatting, module/function exclude/include are all handled there.
-4. Implemented functionality to log only selected functions and ignore others
-5. Implemented partial module exclusion
-
-26/06/2014
-
-Dror:
-
-1. Started breaking main module into pieces
-2. Added line number to every log line
-3. Re-formatted line to include the following:
-    * calling a function [filename] => [method_name]([arguments]) line#: [line_number]
-    * function return [filename] <= [method_name]([arguments]) line#: [line_number]
-
-   In case of an anonymous function, add a notification: An anonymous function
+Creative Commons Attribution NonCommercial (CC-BY-NC)

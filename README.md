@@ -25,20 +25,26 @@ When a file is loaded, it injects code into every function (including annonymous
 Configuration can be specified in a json file under config folder, named according to NODE_ENV variable. If no configuration file is set, defaults are loaded by code. If an AppDebug server is specified, some configuration options are loaded from it.
 
 1. "exclude": ["express", "elasticsearch", "node_modules", "monitor"]
+
 	List of instrumentation exclusions. Files which has any of these strings in their path when loaded will not be instrumented at all.
 2.  "nameAnonymousFunctions": false
+
 	This option allows for generating random names for anonymous functions, for clarity in reporting function invocation.
 3. "compressPosts": true
+
 	Set to 'true' to compress outgoing traffic (tracked functions reports) from the instrumentation. Can be used to minimize network overhead. 
 4. "url": "server.com"
+
 	Base URL for the AppDebug service.
 5. "username": "seffy",
    "password": "seffy"
+
    Username and password to access AppDebug service.
 6. "autoCheckConfiguration" : {
         "once": false,
         "every": 10000
     }
+    
     If set, determines how function instrumentation setup is retrieved from the AppDebug service. If 'once' is set to 'true', function tracking will only be checked once when node_offline_debug is loaded, otherwise it will be retrieved routinely, according to the 'every' miliseconds setting.
 
 

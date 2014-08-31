@@ -1,0 +1,13 @@
+{
+    "functionList": [{
+        "functionName": "search(word)",
+        "sourceFile": "words.js",
+        "line": 3,
+        "selected": true
+    }, {
+        "functionName": "function(req, res)",
+        "sourceFile": "server.js",
+        "line": 17,
+        "selected": true
+    }]
+}

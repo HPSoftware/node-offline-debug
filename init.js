@@ -4,6 +4,7 @@ var config = require('./lib/config'),
   _instruments = require('./lib/instruments.js');
 
 // initialization code, run once when module is loaded
+config.reload();
 
 debugOffline(); // override module load
 

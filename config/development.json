@@ -10,7 +10,7 @@
     "url": "ec2-54-189-147-119.us-west-2.compute.amazonaws.com",
     "url_getFunctions": "/OfflineDebugger/CodeSelection/Functions",
     "url_postData": "/OfflineDebugger/DebugData/Data",
-    "mock_file": "../config/mock.json",
+    "function_tracking_file": "../config/function_tracking.json",
     "fileToLoad": "",
     "dummy_fileToLoad": "routes/wines.js",
     "username": "seffy",

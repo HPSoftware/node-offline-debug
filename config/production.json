@@ -1,5 +1,64 @@
 {
     "active": true,
-    "exclude": ["express", "mime"],
-    "source": "default.json"
+    "exclude": ["express", "elasticsearch", "node_modules", "monitor"],
+    "createTempCopyOfInstrumention": false,
+    "nameAnonymousFunctions": false,
+    "useGivenNames": true,
+    "compressPosts": true,
+    "active_debug_service_type": "service",
+    "debug_services":[
+    {
+        "type": "service",
+        "url": "ec2-54-189-147-119.us-west-2.compute.amazonaws.com",
+        "url_getFunctions": "/OfflineDebugger/CodeSelection/Functions",
+        "url_postData": "/OfflineDebugger/DebugData/Data",
+        "username": "admin",
+        "password": "admin"
+    },
+    {
+        "type": "file",
+        "path": "../config/debug_configuration.json",
+        "outputLog": "debug"
+    }],
+    "autoCheckConfiguration" : {
+        "once": false,
+        "every": 60000
+    },
+    "logging": {
+        "globalLogLevel": "error",
+        "levels": {
+            "verbose": 1,
+            "info": 2,
+            "remote": 3,
+            "data": 4,
+            "warn": 5,
+            "debug": 6,
+            "error": 7
+        },
+        "colors": {
+            "verbose": "cyan",
+            "info": "green",
+            "data": "gray",
+            "warn": "yellow",
+            "debug": "blue",
+            "error": "red",
+            "remote": "white"
+        },
+        "debug": {
+            "log": false,
+            "logToConsole": true,
+            "logToFile": true,
+            "filename": "debug",
+            "roll_file": true,
+            "roll_everyday": false
+        },
+        "exceptions": {
+            "log": false,
+            "logToConsole": true,
+            "logToFile": false,
+            "filename": "exception",
+            "roll_file": true,
+            "roll_everyday": false
+        }
+    }
 }

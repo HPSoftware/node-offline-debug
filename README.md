@@ -2,23 +2,27 @@ Node offline debug
 ===============================
 
 This package can instrument your node.js application so you can track functions execution in real-time.
+
 Instrumentation configuration can be set via configuration file or via an external service, such as HP AppDebug. Such a service allows for dynamic changes to what is being tracked, so the application doesn't need to be restarted (as opposed to printing console messages).
+
+The output is sent to the external service if exist, otherwise sent to console or log file, as specified by the configuration.
 
 ## Example
 
-To instrument your package, simply reference node_offline_debug in your package.json, and then require the package first thing in your app. All the packages that are loaded afterwards will be instrumented.
+To instrument your package, simply reference node_offline_debug in your package.json, and then 'require' the package first thing in your app. All the packages that are loaded afterwards will be instrumented.
 
-	// load the instrumentation
-	var instrument = require('node_offline_debug');
+	// Load the instrumentation
+	// All 'required' modules afterwards are analyzed
+	require('node_offline_debug');
 
-	// All required module below are analyzed
+	// This module is now analyzed and instrumented
 	var server = require('./server.js');
 
 
 ## How it works
 
 node_offline_debug replaces the require handler for .js files.
-When a file is loaded, it injects code into every function (including annonymous functions) to report upon function call and return. The injected code first checks if the function is tracked, to avoid additional overhead if it is not. Tracked functions are reported on every invocation completion, with the values of incoming arguments as well as the return value.
+When a file is loaded, it injects code into every function (including annonymous functions) to report upon function call and return. The injected code first checks if the function is tracked, to avoid additional overhead if it is not. Tracked functions are reported on every invocation completion (including exceptions), with the values of incoming arguments as well as the return value.
 
 ## Configuration options
 

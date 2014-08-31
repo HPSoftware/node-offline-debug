@@ -7,21 +7,24 @@
     "nameAnonymousFunctions": false,
     "useGivenNames": true,
     "compressPosts": true,
-    "url": "ec2-54-189-147-119.us-west-2.compute.amazonaws.com",
-    "url_getFunctions": "/OfflineDebugger/CodeSelection/Functions",
-    "url_postData": "/OfflineDebugger/DebugData/Data",
-    "function_tracking_file": "../config/function_tracking.json",
-    "fileToLoad": "",
-    "dummy_fileToLoad": "routes/wines.js",
-    "username": "seffy",
-    "password": "seffy",
+    "active_debug_service_type": "file",
+    "debug_services":[
+    {
+        "type": "service",
+        "url": "ec2-54-189-147-119.us-west-2.compute.amazonaws.com",
+        "url_getFunctions": "/OfflineDebugger/CodeSelection/Functions",
+        "url_postData": "/OfflineDebugger/DebugData/Data",
+        "username": "seffy",
+        "password": "seffy"
+    },
+    {
+        "type": "file",
+        "path": "../config/debug_configuration.json",
+        "outputLog": "debug"
+    }],
     "autoCheckConfiguration" : {
         "once": false,
         "every": 10000
-    },
-    "server": {
-        "url": "127.0.0.1",
-        "port": 3001
     },
     "logging": {
         "globalLogLevel": "info",

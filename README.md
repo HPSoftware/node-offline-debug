@@ -40,7 +40,7 @@ This configuration will track 'search(word)'. Note that the second entry for tra
 
 <p>node_offline_debug replaces the 'require' handler for .js files.</p>
 <p>When a file is loaded, it injects code into every function (including annonymous functions) to report upon function call and return. The injected code first checks if the function is tracked, to avoid additional overhead if it is not. Tracked functions are reported on every invocation completion (including if an exception is thrown), with the values of incoming arguments as well as the return value.</p>
-<p>The instrumentation code is injected using [Falafel](https://github.com/substack/node-falafel) parsing (based on [Esprima](http://esprima.org/)). node_offline_debug wraps every instrumented function with an initial check to see if the function should be tracked, and then with a try/finally block to make sure tracking is reported. Return statements are also replaced, to capture return value (if any).</p>
+The instrumentation code is injected using [Falafel](https://github.com/substack/node-falafel) parsing (based on [Esprima](http://esprima.org/)). node_offline_debug wraps every instrumented function with an initial check to see if the function should be tracked, and then with a try/finally block to make sure tracking is reported. Return statements are also replaced, to capture return value (if any).
 
 ## Configuration options
 

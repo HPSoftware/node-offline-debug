@@ -9,6 +9,8 @@ Node offline debug
 
 To instrument your package, simply reference node_offline_debug in your package.json, and then 'require' the package first thing in your app. All the packages that are loaded afterwards will be instrumented.
 
+The following code samples are instrumenting the [word-finder application](https://github.com/amirrajan/word-finder). The application main file is 'server.js', however in order to instrument it as well, we add a new 'init.js' file which simply require 'node_offline_debug' and then 'server.js':
+
 	// Load the instrumentation
 	// All 'required' modules afterwards are analyzed
 	require('node_offline_debug');
@@ -16,6 +18,23 @@ To instrument your package, simply reference node_offline_debug in your package.
 	// This module is now analyzed and instrumented
 	var server = require('./server.js');
 
+The interesting function in word-finder is search(word) in the words.js file. In order to track it we define in the configuration a debug_service of type 'file', which loads functions to track from the package's 'config/debug_configuration.json' file:
+
+	{
+	    "functionList": [{
+	        "functionName": "search(word)",
+	        "sourceFile": "words.js",
+	        "line": 3,
+	        "selected": true
+	    }, {
+	        "functionName": "function(req, res)",
+	        "sourceFile": "server.js",
+	        "line": 17,
+	        "selected": false
+	    }]
+	}
+
+This configuration will track 'search(word)'. Note that the second entry for tracking the 'express' handler for '/' is disabled ('selected' is set to false).
 
 ## How it works
 

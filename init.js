@@ -1,8 +1,8 @@
 var config = require('./lib/config'),
-  debugOffline = require('./offline_debug'),
-  logger = require('./lib/logger'),
-  network = require('./lib/network'),
-  _instruments = require('./lib/instruments.js');
+    _instruments = require('./lib/instruments.js'),
+    debugOffline = require('./offline_debug'),
+    logger = require('./lib/logger'),
+    network = require('./lib/network');
 
 // initialization code, run once when module is loaded
 
@@ -10,8 +10,8 @@ debugOffline(); // override module load
 
 var waitForConfigReload = setInterval(function () {
     if (config.status === "done") {
-      logger.info('Instrumentation configuration is loaded');
-      config.initIntervaling();
+        logger.info('Instrumentation configuration is loaded');
+        config.initIntervaling();
       clearInterval(waitForConfigReload);
     }
 }, 1000);

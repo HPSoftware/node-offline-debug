@@ -4,17 +4,27 @@ var config = require('./lib/config'),
   _instruments = require('./lib/instruments.js');
 
 // initialization code, run once when module is loaded
-//config.reload();
 
-debugOffline(); // override module load
+debugOffline(); // override module load handler
 
+// this timer is used to ensure that first-time configuration load
+// is perfromed in some delay (1 sec) after the rest of the code
+// is loaded, to avoid issues with cicular dependencies
 var waitForConfigReload = setInterval(function () {
     if (config.status === "done") {
+      // after first-time configuraiton load, the responsibility
+      // for subsequent loads is moved to the initIntervaling
+      // function in config.js
       logger.info('Instrumentation configuration is loaded');
       config.initIntervaling();
+      // clear the current timer
       clearInterval(waitForConfigReload);
-    } else {
+    } else if (config.status === "init") {
+      // if we got here it means the configuration has not loaded yet
+      // init the first-time configuration load
         config.reload();
+      // the time is still running, next iteration will be either 'loading'
+      // or 'done'
     }
 }, 1000);
 // end initilization

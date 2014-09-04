@@ -4,8 +4,6 @@ var instruments = require('./lib/instruments'),
     read = require('fs').readFileSync,
     EE = require('events').EventEmitter,
     falafel = require('falafel'),
-    util = require('util'),
-    strings = require('./lib/strings'),
     logger = require('./lib/logger'),
     map = require('./lib/map'),
     mkdirp = require('mkdirp'),
@@ -191,7 +189,7 @@ module.exports = function(match) {
             src = instruments_require_string + src;
             src = wrap_code(src, filename).toString();
 
-            logger.info(filename);
+            logger.info('node_offline_debug instrumenting: ' + filename);
         }
 
         /* save instrumented code for instrumentation research */

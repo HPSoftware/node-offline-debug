@@ -5,7 +5,7 @@
     "nameAnonymousFunctions": false,
     "useGivenNames": true,
     "compressPosts": true,
-    "active_debug_service_type": "file",
+    "active_debug_service_type": "service",
     "debug_services":[
     {
         "type": "service",

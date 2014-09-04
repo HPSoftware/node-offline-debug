@@ -4,7 +4,7 @@ var config = require('./lib/config'),
   _instruments = require('./lib/instruments.js');
 
 // initialization code, run once when module is loaded
-config.reload();
+//config.reload();
 
 debugOffline(); // override module load
 
@@ -13,6 +13,8 @@ var waitForConfigReload = setInterval(function () {
       logger.info('Instrumentation configuration is loaded');
       config.initIntervaling();
       clearInterval(waitForConfigReload);
+    } else {
+        config.reload();
     }
 }, 1000);
 // end initilization

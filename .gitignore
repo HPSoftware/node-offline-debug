@@ -29,3 +29,6 @@ node_modules
 
 # Debug files
 /lib/*.log.*
+
+# Package files
+node_offline_debug*tgz

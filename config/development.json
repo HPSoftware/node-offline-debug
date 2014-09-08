@@ -1,11 +1,10 @@
 {
     "active": true,
     "exclude": ["express", "elasticsearch", "node_modules", "monitor"],
-    "createTempCopyOfInstrumention": true,
-    "nameAnonymousFunctions": true,
+    "createTempCopyOfInstrumention": false,
     "useGivenNames": true,
     "compressPosts": true,
-    "active_debug_service_type": "service",
+    "active_debug_service_type": "file",
     "debug_services":[
     {
         "type": "service",
@@ -17,7 +16,7 @@
     },
     {
         "type": "file",
-        "path": "../config/debug_configuration.json",
+        "path": "../config/debug_configuration_word_finder.json",
         "outputLog": "debug"
     }],
     "autoCheckConfiguration" : {

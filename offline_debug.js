@@ -43,15 +43,8 @@ function lookupFunctionNode(node) {
     return returnNode;
 }
 
-function injectNameToFunction(src, fn_name) {
-    if (src.lastIndexOf('function(', 0) === 0) // check if there is a whitespace after 'function'
-        src = src.replace('(', ' ' + fn_name + '(');
-    else
-        src = src.replace('(', fn_name + '(');
-    return src;
-}
-
-function transformNodeSource(src, filename, fn_name, args, line_number, fn_var, fn_isAnonymous) {
+function transformNodeSource(src, filename, fn_name, args, line_number, fn_var) {
+    // note: for anonymouse functions, fn_name is an empty string ('')
     line_number = line_number - 1;
     var methodLookup = instruments.getFunctionUniqueID(filename, line_number);
     src = src.replace('{',
@@ -61,7 +54,7 @@ function transformNodeSource(src, filename, fn_name, args, line_number, fn_var, 
             '(typeof __instruments.lookupMap[' + methodLookup + '] !== \"undefined\");\n' +
             'if  ('+ fn_var+'_shouldInstrument) { ' +
                 'var methodId = Date.now();\n' +
-                '__instruments.handlePreMessage(\'' + fn_name +'\',\'' +  args + '\'  , [].slice.call(arguments, 0), \'' + filename + '\', methodId, \'' + line_number + '\', ' + fn_isAnonymous + ');\n' +
+                '__instruments.handlePreMessage(\'' + fn_name +'\',\'' +  args + '\'  , [].slice.call(arguments, 0), \'' + filename + '\', methodId, \'' + line_number + '\');\n' +
             ' }\n' +
             ' try {\n');
 
@@ -73,6 +66,10 @@ function transformNodeSource(src, filename, fn_name, args, line_number, fn_var, 
             ' }\n' +
         ' }\n' +
         '}'; // the last curly { is for the function itself
+    // there may or may not be a closing ) after the last curly }
+    // so only one of the following 2 statements will actually replace anything
+    //  TODO: check if perfromacne will be improved with a check on which option
+    //      instead of running both replace 
     src = src.replace(/\}\)$/, finally_string + ')');
     src = src.replace(/\}$/, finally_string);
 
@@ -106,7 +103,7 @@ var wrap_code = function(src, filename) {
                 'loc': true
             }, function(node) {
                 var src,
-                    fn_name,
+                    fn_name = '',
                     fn_start_line,
                     filename_lookup,
                     fn_retvalue,
@@ -121,12 +118,6 @@ var wrap_code = function(src, filename) {
 
                         if (node.id) {
                             fn_name = node.id.name;
-                        } else {
-                            fn_name = identifier(6);
-                            // inject generated name to an anon function
-                            if (config.nameAnonymousFunctions)
-                                src = injectNameToFunction(src, fn_name);
-                            fn_isAnonymous = true;
                         }
 
                         for (var i = 0; i < node.params.length; ++i) {
@@ -137,9 +128,8 @@ var wrap_code = function(src, filename) {
                         //     - need to change every other lookup as well, including config
                         filename_lookup = instruments.shortenFileName(filename);
                         fn_retvalue = getReturnCode(filename_lookup + '_' + fn_start_line);
-                        instruments.fnNameAndFilename.put(fn_name, filename_lookup + '_' + fn_start_line);
 
-                        src = transformNodeSource(src, filename_lookup, fn_name, args, fn_start_line, fn_retvalue, fn_isAnonymous);
+                        src = transformNodeSource(src, filename_lookup, fn_name, args, fn_start_line, fn_retvalue);
 
                         node.update(src);
 

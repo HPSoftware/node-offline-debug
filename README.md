@@ -53,24 +53,21 @@ The active source is set by <b>'active_debug_service_type'</b> and defaults to t
 1. "exclude": ["express", "elasticsearch", "node_modules", "monitor"]
 
 	List of instrumentation exclusions. Files which has any of these strings in their path will not be instrumented at all.
-2. "nameAnonymousFunctions": false
-
-	This option allows for generating random names for anonymous functions, for clarity in reporting function invocation.
-3. "compressPosts": true
+2. "compressPosts": true
 
 	Set to 'true' to compress outgoing traffic (tracked functions reports) from the instrumentation. Can be used to minimize network overhead. 
-4. "url": "server.com" (for the 'debug_service' of type 'service')
+3. "url": "server.com" (for the 'debug_service' of type 'service')
 
 	Base URL for the AppDebug service.
-5. "username": "admin",
+4. "username": "admin",
    "password": "pwd" (for the 'debug_service' of type 'service')
 
    Username and password to access AppDebug service.
-6. "path": "../config/debug_configuration.json",
+5. "path": "../config/debug_configuration.json",
    "outputLog": "debug" (for the 'debug_service' of type 'file')
 
    Set the file which stores function debug configuration, and the log level/type which tracking data will be sent to.
-7. "autoCheckConfiguration" : {
+6. "autoCheckConfiguration" : {
         "once": false,
         "every": 10000
     }

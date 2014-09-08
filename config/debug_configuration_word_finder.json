@@ -1,9 +1,9 @@
 {
     "functionList": [{
-        "functionName": "function(req, res)",
+        "functionName": "handler for root",
         "sourceFile": "server.js",
-        "line": 17,
-        "selected": false
+        "line": 16,
+        "selected": true
     }, {
         "functionName": "search(word)",
         "line": 3,

@@ -18,7 +18,7 @@ The following code samples are instrumenting the [word-finder application](https
 	// This module is now analyzed and instrumented
 	var server = require('./server.js');
 
-The interesting function in word-finder is search(word) in the words.js file. In order to track it we define in the configuration a debug_service of type 'file', which loads functions to track from the package's 'config/debug_configuration.json' file:
+The interesting function in word-finder is search(word) in the words.js file. In order to track it we define in the configuration a debug_service of type 'file', which loads functions to track from the package's 'config/debug_configuration_word_finder.json' file:
 
 	{
 	    "functionList": [{

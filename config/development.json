@@ -2,7 +2,7 @@
     "active": true,
     "exclude": ["express", "elasticsearch", "node_modules", "monitor"],
     "createTempCopyOfInstrumention": true,
-    "nameAnonymousFunctions": false,
+    "nameAnonymousFunctions": true,
     "useGivenNames": true,
     "compressPosts": true,
     "active_debug_service_type": "service",

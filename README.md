@@ -9,7 +9,7 @@ Node offline debug
 
 To install node_offline_debug package, simply follow [npm](https://www.npmjs.org) guidance (add it to your package.json or install it manually with 'mpm install').
 
-To instrument your package, simply reference node_offline_debug in your package.json, and then 'require' the package first thing in your app. All the packages that are loaded afterwards will be instrumented.
+To instrument your package, simply 'require' the package first thing in your app. All the packages that are loaded afterwards will be instrumented.
 
 The following code samples are instrumenting the [word-finder application](https://github.com/amirrajan/word-finder). The application main file is 'server.js', however in order to instrument it as well, we add a new 'init.js' file which simply require 'node_offline_debug' and then 'server.js':
 
@@ -36,7 +36,8 @@ The interesting function in word-finder is search(word) in the words.js file. In
 	    }]
 	}
 
-This configuration will track 'search(word)'. Note that the second entry for tracking the 'express' handler for '/' is disabled ('selected' is set to false).
+This configuration will track 'search(word)'. Note that the second entry for tracking the 'express' handler for '/' is disabled ('selected' is set to false).<p/>
+The output is dependent on the definition of the debug_service (see the configuration section), but assuming you are using a debug_service of type 'file', you can direct the output to the console. After the function invocation is completed, debug data is printed out as a structured json. 
 
 ## How it works
 
@@ -91,7 +92,7 @@ node_offline_debug is using the following 3rd parties:
 * [espirma](http://esprima.org/)
 * [traceback](https://www.npmjs.org/package/traceback)
 * [winston](https://www.npmjs.org/package/winston)
-* [identifier](https://www.npmjs.org/package/winston)
+* [identifier](https://www.npmjs.org/package/identifier)
 * [mkdirp](https://github.com/substack/node-mkdirp)
 
 ## Authors

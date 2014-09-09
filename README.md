@@ -7,6 +7,8 @@ Node offline debug
 
 ## Example
 
+To install node_offline_debug package, simply follow [npm](https://www.npmjs.org) guidance (add it to your package.json or install it manually with 'mpm install').
+
 To instrument your package, simply reference node_offline_debug in your package.json, and then 'require' the package first thing in your app. All the packages that are loaded afterwards will be instrumented.
 
 The following code samples are instrumenting the [word-finder application](https://github.com/amirrajan/word-finder). The application main file is 'server.js', however in order to instrument it as well, we add a new 'init.js' file which simply require 'node_offline_debug' and then 'server.js':
@@ -74,6 +76,27 @@ The active source is set by <b>'active_debug_service_type'</b> and defaults to t
     
     Applies to all debug services (including 'file'). Determines how function instrumentation setup is retrieved from the debug service. If 'once' is set to 'true', function debugging configuation will only be checked once when node_offline_debug is loaded, otherwise it will be retrieved routinely, according to the 'every' miliseconds setting.
 
+## Contributing
+
+We will be very glad of any imporovement to this library, and encourage you to submit defect fixes, new features and perfromance imporvements.
+To contribute to node_offline_debug, please use GitHub pull requests:
+* You MUST write a clear title and description of your change.
+* You SHOULD have descriptive commit comments, and you are encouraged to rebase and squash commits.
+* As with most instrumentation, perfromance overhead on the instrumented application should be minimized at all costs. Please test and make sure that your changes did not increase the overhead, by running a few simple scenarios of the instrumented application and comparing their single user performance: without 'requiring' node_offline_debig, with 'require' but with no function tracking, with a single function tracked and with many functions tracked.
+
+## Credits
+
+node_offline_debug is using the following 3rd parties:
+* [falafel](https://github.com/substack/node-falafel)
+* [espirma](http://esprima.org/)
+* [traceback](https://www.npmjs.org/package/traceback)
+* [winston](https://www.npmjs.org/package/winston)
+* [identifier](https://www.npmjs.org/package/winston)
+* [mkdirp](https://github.com/substack/node-mkdirp)
+
+## Authors
+
+node_offline_debug was written by HP Software, with special thanks to [Dror Avidov](https://github.com/just2click). 
 
 ## License
 

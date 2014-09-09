@@ -11,6 +11,8 @@ To install node_offline_debug package, simply follow [npm](https://www.npmjs.org
 
 To instrument your package, simply 'require' the package first thing in your app. All the packages that are loaded afterwards will be instrumented.
 
+Important! in order to have your packages instrumented you must load them using the require('<package_name>'), you cannot instrumrent packages that are "required" during runtime in a general fashion, such as load all *.js files from a folder.
+
 The following code samples are instrumenting the [word-finder application](https://github.com/amirrajan/word-finder). The application main file is 'server.js', however in order to instrument it as well, we add a new 'init.js' file which simply require 'node_offline_debug' and then 'server.js':
 
 	// Load the instrumentation
@@ -83,7 +85,7 @@ We will be very glad of any imporovement to this library, and encourage you to s
 To contribute to node_offline_debug, please use GitHub pull requests:
 * You MUST write a clear title and description of your change.
 * You SHOULD have descriptive commit comments, and you are encouraged to rebase and squash commits.
-* As with most instrumentation, perfromance overhead on the instrumented application should be minimized at all costs. Please test and make sure that your changes did not increase the overhead, by running a few simple scenarios of the instrumented application and comparing their single user performance: without 'requiring' node_offline_debig, with 'require' but with no function tracking, with a single function tracked and with many functions tracked.
+* As with most instrumentation, perfromance overhead on the instrumented application should be minimized at all costs. Please test and make sure that your changes did not increase the overhead, by running a few simple scenarios of the instrumented application and comparing their single user performance: without 'requiring' node_offline_debug, with 'require' but with no function tracking, with a single function tracked and with many functions tracked.
 
 ## Credits
 

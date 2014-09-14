@@ -12,7 +12,7 @@ var instruments = require('./lib/instruments'),
     config = require('./lib/config'),
     write = require('fs').writeFileSync;
 
-var instruments_require_string = 'var __instruments = require(\'node_offline_debug\');\n',
+var instruments_require_string = 'var __instruments = require(\'node-offline-debug\');\n',
     tmpReturnValues = new map();
 
 function getReturnCode(key) {
@@ -179,7 +179,7 @@ module.exports = function(match) {
             src = instruments_require_string + src;
             src = wrap_code(src, filename).toString();
 
-            logger.info('node_offline_debug instrumenting: ' + filename);
+            logger.info('node-offline-debug instrumenting: ' + filename);
         }
 
         /* save instrumented code for instrumentation research */

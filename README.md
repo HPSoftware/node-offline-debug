@@ -5,19 +5,23 @@ Node offline debug
 <p>Instrumentation configuration can be set via configuration file or via an external service, such as HP AppDebug. Such a service allows for dynamic changes to what is being tracked, so the application doesn't need to be restarted (as opposed to printing console messages).</p>
 <p>The output is sent to the external service if exist, otherwise sent to console or log file, as specified by the configuration.</p>
 
-## Example
+## Install
 
-To install node_offline_debug package, simply follow [npm](https://www.npmjs.org) guidance (add it to your package.json or install it manually with 'mpm install').
+To install node-offline-debug package, simply follow [npm](https://www.npmjs.org) guidance (add it to your package.json or install it manually with 'npm install').
+
+	npm install node-offline-debug
+
+## Example
 
 To instrument your package, simply 'require' the package first thing in your app. All the packages that are loaded afterwards will be instrumented.
 
 Important! in order to have your packages instrumented you must load them using the require('<package_name>'), you cannot instrumrent packages that are "required" during runtime in a general fashion, such as load all *.js files from a folder.
 
-The following code samples are instrumenting the [word-finder application](https://github.com/amirrajan/word-finder). The application main file is 'server.js', however in order to instrument it as well, we add a new 'init.js' file which simply require 'node_offline_debug' and then 'server.js':
+The following code samples are instrumenting the [word-finder application](https://github.com/amirrajan/word-finder). The application main file is 'server.js', however in order to instrument it as well, we add a new 'init.js' file which simply require 'node-offline-debug' and then 'server.js':
 
 	// Load the instrumentation
 	// All 'required' modules afterwards are analyzed
-	require('node_offline_debug');
+	require('node-offline-debug');
 
 	// This module is now analyzed and instrumented
 	var server = require('./server.js');
@@ -43,9 +47,9 @@ The output is dependent on the definition of the debug_service (see the configur
 
 ## How it works
 
-<p>node_offline_debug replaces the 'require' handler for .js files.</p>
+<p>node-offline-debug replaces the 'require' handler for .js files.</p>
 <p>When a file is loaded, it injects code into every function (including annonymous functions) to report upon function call and return. The injected code first checks if the function is tracked, to avoid additional overhead if it is not. Tracked functions are reported on every invocation completion (including if an exception is thrown), with the values of incoming arguments as well as the return value.</p>
-The instrumentation code is injected using [Falafel](https://github.com/substack/node-falafel) parsing (based on [Esprima](http://esprima.org/)). node_offline_debug wraps every instrumented function with an initial check to see if the function should be tracked, and then with a try/finally block to make sure tracking is reported. Return statements are also replaced, to capture return value (if any).
+The instrumentation code is injected using [Falafel](https://github.com/substack/node-falafel) parsing (based on [Esprima](http://esprima.org/)). node-offline-debug wraps every instrumented function with an initial check to see if the function should be tracked, and then with a try/finally block to make sure tracking is reported. Return statements are also replaced, to capture return value (if any).
 
 ## Configuration options
 
@@ -77,19 +81,19 @@ The active source is set by <b>'active_debug_service_type'</b> and defaults to t
         "every": 10000
     }
     
-    Applies to all debug services (including 'file'). Determines how function instrumentation setup is retrieved from the debug service. If 'once' is set to 'true', function debugging configuation will only be checked once when node_offline_debug is loaded, otherwise it will be retrieved routinely, according to the 'every' miliseconds setting.
+    Applies to all debug services (including 'file'). Determines how function instrumentation setup is retrieved from the debug service. If 'once' is set to 'true', function debugging configuation will only be checked once when node-offline-debug is loaded, otherwise it will be retrieved routinely, according to the 'every' miliseconds setting.
 
 ## Contributing
 
 We will be very glad of any imporovement to this library, and encourage you to submit defect fixes, new features and perfromance imporvements.
-To contribute to node_offline_debug, please use GitHub pull requests:
+To contribute to node-offline-debug, please use GitHub pull requests:
 * You MUST write a clear title and description of your change.
 * You SHOULD have descriptive commit comments, and you are encouraged to rebase and squash commits.
-* As with most instrumentation, perfromance overhead on the instrumented application should be minimized at all costs. Please test and make sure that your changes did not increase the overhead, by running a few simple scenarios of the instrumented application and comparing their single user performance: without 'requiring' node_offline_debug, with 'require' but with no function tracking, with a single function tracked and with many functions tracked.
+* As with most instrumentation, perfromance overhead on the instrumented application should be minimized at all costs. Please test and make sure that your changes did not increase the overhead, by running a few simple scenarios of the instrumented application and comparing their single user performance: without 'requiring' node-offline-debug, with 'require' but with no function tracking, with a single function tracked and with many functions tracked.
 
 ## Credits
 
-node_offline_debug is using the following 3rd parties:
+node-offline-debug is using the following 3rd parties:
 * [falafel](https://github.com/substack/node-falafel)
 * [espirma](http://esprima.org/)
 * [traceback](https://www.npmjs.org/package/traceback)
@@ -99,7 +103,7 @@ node_offline_debug is using the following 3rd parties:
 
 ## Authors
 
-node_offline_debug was written by HP Software, with special thanks to [Dror Avidov](https://github.com/just2click). 
+node-offline-debug was written by HP Software, with special thanks to [Dror Avidov](https://github.com/just2click). 
 
 ## License
 

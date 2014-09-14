@@ -1,5 +1,5 @@
 {
-  "name": "node_offline_debug",
+  "name": "node-offline-debug",
   "version": "0.0.7",
   "description": "Enable offline debugging of node.js functions",
   "main": "init.js",

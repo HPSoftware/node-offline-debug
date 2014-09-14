@@ -1,15 +1,14 @@
 {
-    "active": true,
     "exclude": ["express", "elasticsearch", "node_modules", "monitor"],
+    "public_configuration_file": "../config/public_development_configuration.json",
     "createTempCopyOfInstrumention": false,
-    "useGivenNames": true,
-    "compressPosts": true,
-    "active_debug_service_type": "service",
+    "active_debug_service_type": "files(done)",
     "debug_services":[
     {
         "type": "service",
         "url": "ec2-54-189-147-119.us-west-2.compute.amazonaws.com",
         "url_getFunctions": "/OfflineDebugger/CodeSelection/Functions",
+        "url_getConfig": "/OfflineDebugger/Config",
         "url_postData": "/OfflineDebugger/DebugData/Data",
         "username": "seffy",
         "password": "seffy"
@@ -19,10 +18,6 @@
         "path": "../config/debug_configuration.json",
         "outputLog": "debug"
     }],
-    "autoCheckConfiguration" : {
-        "once": false,
-        "every": 10000
-    },
     "logging": {
         "globalLogLevel": "info",
         "levels": {

@@ -69,7 +69,7 @@ function transformNodeSource(src, filename, fn_name, args, line_number, fn_var) 
     // there may or may not be a closing ) after the last curly }
     // so only one of the following 2 statements will actually replace anything
     //  TODO: check if perfromacne will be improved with a check on which option
-    //      instead of running both replace 
+    //      instead of running both replace
     src = src.replace(/\}\)$/, finally_string + ')');
     src = src.replace(/\}$/, finally_string);
 
@@ -96,65 +96,64 @@ function transformReturnSource(src, fn_var) {
 }
 
 var wrap_code = function(src, filename) {
-    if (instruments.isActive()) {
-        if (instruments.isModuleIncluded(filename)) {
+    if (instruments.isModuleIncluded(filename)) {
 
-            return falafel(src, {
-                'loc': true
-            }, function(node) {
-                var src,
-                    fn_name = '',
-                    fn_start_line,
-                    filename_lookup,
-                    fn_retvalue,
-                    fn_isAnonymous = false,
-                    args = [];
+        return falafel(src, {
+            'loc': true
+        }, function(node) {
+            var src,
+                fn_name = '',
+                fn_start_line,
+                filename_lookup,
+                fn_retvalue,
+                fn_isAnonymous = false,
+                args = [];
 
-                switch (node.type) {
-                    case 'FunctionDeclaration':
-                    case 'FunctionExpression':
-                        src = node.source();
-                        fn_start_line = node.loc.start.line;
+            switch (node.type) {
+                case 'FunctionDeclaration':
+                case 'FunctionExpression':
+                    src = node.source();
+                    fn_start_line = node.loc.start.line;
 
-                        if (node.id) {
-                            fn_name = node.id.name;
-                        }
+                    if (node.id) {
+                        fn_name = node.id.name;
+                    }
 
-                        for (var i = 0; i < node.params.length; ++i) {
-                            args.push(node.params[i].name);
-                        }
+                    for (var i = 0; i < node.params.length; ++i) {
+                        args.push(node.params[i].name);
+                    }
 
-                        // TODO: use full filenames, like in filenameForCache
-                        //     - need to change every other lookup as well, including config
-                        filename_lookup = instruments.shortenFileName(filename);
-                        fn_retvalue = getReturnCode(filename_lookup + '_' + fn_start_line);
+                    // TODO: use full filenames, like in filenameForCache
+                    //     - need to change every other lookup as well, including config
+                    filename_lookup = instruments.shortenFileName(filename);
+                    fn_retvalue = getReturnCode(filename_lookup + '_' + fn_start_line);
 
-                        src = transformNodeSource(src, filename_lookup, fn_name, args, fn_start_line, fn_retvalue);
+                    src = transformNodeSource(src, filename_lookup, fn_name, args, fn_start_line, fn_retvalue);
 
-                        node.update(src);
+                    node.update(src);
 
-                        break;
-                    case 'ReturnStatement':
-                        // TODO: encapsulate return statement with paranthesis
-                        //    and comma (orginal,set retVal)
-                        src = node.source();
-                        filename_lookup = instruments.shortenFileName(filename);
+                    break;
+                case 'ReturnStatement':
+                    // TODO: encapsulate return statement with paranthesis
+                    //    and comma (orginal,set retVal)
+                    src = node.source();
+                    filename_lookup = instruments.shortenFileName(filename);
 
-                        var functionNode = lookupFunctionNode(node);
+                    var functionNode = lookupFunctionNode(node);
 
-                        if (functionNode !== undefined) {
-                            var start_line = functionNode.loc.start.line;
+                    if (functionNode !== undefined) {
+                        var start_line = functionNode.loc.start.line;
 
-                            fn_retvalue = getReturnCode(filename_lookup + '_' + start_line);
-                        }
+                        fn_retvalue = getReturnCode(filename_lookup + '_' + start_line);
+                    }
 
-                        src = transformReturnSource(src, fn_retvalue);
-                        node.update(src);
-                        break;
-                }
-            });
-        }
+                    src = transformReturnSource(src, fn_retvalue);
+                    node.update(src);
+                    break;
+            }
+        });
     }
+
     return src;
 };
 

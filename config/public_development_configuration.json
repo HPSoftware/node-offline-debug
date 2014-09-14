@@ -1,0 +1,8 @@
+{
+    "useGivenNames": true,
+    "compressPosts": true,
+    "autoCheckConfiguration" : {
+        "once": false,
+        "every": 10000
+    }
+}

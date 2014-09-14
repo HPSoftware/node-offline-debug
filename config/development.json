@@ -2,7 +2,7 @@
     "exclude": ["express", "elasticsearch", "node_modules", "monitor"],
     "public_configuration_file": "../config/public_development_configuration.json",
     "createTempCopyOfInstrumention": false,
-    "active_debug_service_type": "files(done)",
+    "active_debug_service_type": "file",
     "debug_services":[
     {
         "type": "service",

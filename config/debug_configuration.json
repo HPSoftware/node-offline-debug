@@ -7,13 +7,18 @@
     }, {
         "functionName": "function(req, res)",
         "sourceFile": "server.js",
-        "line": 17,
-        "selected": false
+        "line": 16,
+        "selected": true
     }, {
-        "functionName": "var tmpFindAll",
-        "line": 89,
-        "sourceFile": "wines.js",
-        "selected": false
+        "functionName": "search(word)",
+        "sourceFile": "words.js",
+        "line": 3,
+        "selected": true
+    }, {
+        "functionName": "function(w)",
+        "line": 25,
+        "sourceFile": "words.js",
+        "selected": true
     }, {
         "functionName": "exports.find3rdLevel",
         "line": 114,

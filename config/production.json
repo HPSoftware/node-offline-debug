@@ -1,6 +1,6 @@
 {
     "exclude": ["express", "elasticsearch", "node_modules", "monitor"],
-    "public_configuration_file": "../config/public_development_configuration.json",
+    "public_configuration_file": "../config/public_production_configuration.json",
     "createTempCopyOfInstrumention": false,
     "compressPosts": true,
     "active_debug_service_type": "service",

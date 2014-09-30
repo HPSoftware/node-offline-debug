@@ -7,10 +7,10 @@
     "debug_services":[
     {
         "type": "service",
-        "url": "ec2-54-189-147-119.us-west-2.compute.amazonaws.com",
-        "url_getFunctions": "/OfflineDebugger/CodeSelection/Functions",
-        "url_getConfig": "/OfflineDebugger/Config",
-        "url_postData": "/OfflineDebugger/DebugData/Data",
+        "url": "apdalb.saas.hp.com",
+        "url_getFunctions": "/AppDebug/CodeSelection/Functions",
+        "url_getConfig": "/AppDebug/ClientManagement/Setting",
+        "url_postData": "/AppDebug/DebugData/Data",
         "username": "seffy",
         "password": "seffy"
     },

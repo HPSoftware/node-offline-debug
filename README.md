@@ -104,4 +104,4 @@ node-offline-debug was written by HP Software, with special thanks to [Dror Avid
 
 ## License
 
-Creative Commons Attribution NonCommercial (CC-BY-NC)
+MIT License

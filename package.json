@@ -16,6 +16,10 @@
     "debug",
     "offline"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HPSoftware/node-offline-debug"
+  },
   "author": {
     "name": "HP Software",
     "email": "inbar.shani@hp.com"

@@ -16,7 +16,7 @@
     },
     {
         "type": "file",
-        "path": "../config/debug_configuration.json",
+        "path": "../config/debug_configuration_word_finder.json",
         "outputLog": "debug"
     }],
     "logging": {

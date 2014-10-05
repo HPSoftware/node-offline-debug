@@ -53,7 +53,12 @@ The instrumentation code is injected using [Falafel](https://github.com/substack
 
 ## Configuration options
 
-<p>Configuration options determine the source for function tracking settings. Additionaly, configuraiton options determine general instrumentation settings. Configuration can be specified in a json file under the package config folder, named according to NODE_ENV variable (e.g. 'development.json'). If no configuration file is set, the code loades the defaults. If an AppDebug service is set as a source for debug configuration, some configuration options may be overridden by values retrieved from the service.</p>
+<p>Configuration options determine the source for function tracking settings. Additionaly, configuraiton options determine general instrumentation settings. Configuration can be specified in a json file in the following locations:</p>
+<ul>
+	<li>Application root directory, in a file named 'node-offline-debug-<i>ENV</i>.json, where ENV is replaced in runtime with the NODE_ENV variable value (e.g. 'node-offline-debug-development.json'). You don't need to set all the configuration options in this file, and any configuration option that will be set will take priority over the package configuration file (see next).</li>
+	<li>Under the package config folder, named according to NODE_ENV variable (e.g. 'development.json'). Note that such configuration files are part of the repository and most likely with the npm package as well.</li>
+</ul>
+<p>If no configuration file is set, the code loades the defaults. If an AppDebug service is set as a source for debug configuration, some configuration options may be overridden by values retrieved from the service.</p>
 <p/>
 <p>The setting of <b>'debug_services'</b> defines the possible sources for function tracking settings. Current support is for HP AppDebug service, and for a file source, by default 'debug_configuration.json' under the package’s config folder.<br/>
 The active source is set by <b>'active_debug_service_type'</b>, by default the 'file' source.</p>

@@ -158,17 +158,7 @@ var wrap_code = function(src, filename) {
 };
 
 module.exports = function(match) {
-    var original_require = require.extensions['.js'];
-
-    match = typeof match === 'string' ?
-        new RegExp(match.replace(/\//g, '\\/').replace(/\./g, '\\.')) :
-        match === undefined ?
-        /.*/g : match;
-
     require.extensions['.js'] = function(module, filename) {
-        if (!match.test(filename)) {
-            return original_require(module, filename);
-        }
 
         var module_context = {},
             src = read(filename, 'utf8');

@@ -11,8 +11,8 @@
         "url_getFunctions": "/AppDebug/CodeSelection/Functions",
         "url_getConfig": "/AppDebug/ClientManagement/Setting",
         "url_postData": "/AppDebug/DebugData/Data",
-        "username": "seffy",
-        "password": "seffy"
+        "username": "dev",
+        "password": "dev"
     },
     {
         "type": "file",

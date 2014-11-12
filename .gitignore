@@ -32,3 +32,6 @@ node_modules
 
 # Package files
 node_offline_debug*tgz
+
+# scripts for handling the repo
+scripts
